@@ -14,6 +14,7 @@
         .msg { max-width: 88%; padding: 13px 17px; border-radius: 16px; font-size: 0.92rem; line-height: 1.6; word-wrap: break-word; white-space: pre-wrap; }
         .bot { align-self: flex-start; background-color: #1e293b; color: #e2e8f0; border-bottom-left-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25); border: 1px solid #334155; }
         .user { align-self: flex-end; background-color: #0284c7; color: #ffffff; border-bottom-right-radius: 4px; }
+        .thinking { font-style: italic; color: #38bdf8; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
         #input-area { background-color: #0f172a; padding: 12px 14px; border-top: 1px solid #1e293b; display: flex; gap: 8px; align-items: center; }
         #pesan-input { flex: 1; background-color: #1e293b; border: 1px solid #334155; border-radius: 24px; padding: 12px 18px; color: #f8fafc; font-size: 0.9rem; outline: none; }
         #pesan-input:focus { border-color: #38bdf8; }
@@ -29,7 +30,7 @@
 </header>
 
 <div id="chat-box">
-    <div class="msg bot">Halo! Saya <b>OoeR AI Pro</b>, kecerdasan buatan mandiri 0 MB yang dikembangkan langsung oleh <b>Arip Rahman</b>.
+    <div class="msg bot">Halo! Saya <b>OoeR AI Pro</b>, kecerdasan buatan mandiri yang dikembangkan langsung oleh <b>Arip Rahman</b>.
 
 Saya membaca dan menguasai seluruh materi serta resep lokal secara mandiri tanpa server luar. Silakan tanyakan resep masakan, ilmu pengetahuan, atau diskusikan hal yang ingin kamu ketahui. Semoga jawabannya tepat ya ✌️😅</div>
 </div>
@@ -43,20 +44,30 @@ Saya membaca dan menguasai seluruh materi serta resep lokal secara mandiri tanpa
 const NAMA_BOT = "Ooer Pro";
 const PENCIPTA = "Arip Rahman";
 
-// --- MESIN PENCARI TF-IDF MANDIRI DINAMIS ---
 let dokumenMateri = [];
 let totalDokumen = 0;
-let frekuensiDokumen = {}; // DF (Document Frequency)
+let frekuensiDokumen = {};
 
-// Fungsi pemecah kata bersih
-function tokenisasi(teks) {
-    return teks.toLowerCase()
-               .replace(/[^a-z0-9\s]/g, " ")
-               .split(/\s+/)
-               .filter(k => k.length > 1);
+const STOPWORDS = new Set([
+    "apa", "apakah", "siapa", "dengan", "kenapa", "mengapa", "bagaimana", "gimana",
+    "kapan", "di", "ke", "dari", "yang", "itu", "ini", "dan", "atau", "karena",
+    "ada", "bisa", "ya", "sih", "kan", "dong", "kah", "kok", "gak", "nggak", "gk",
+    "lah", "pun", "adalah", "yaitu", "tentang", "pada", "untuk", "buat", "dibuat",
+    "dibikin", "bikin", "tolong", "coba", "kasih", "tahu", "kamu", "saya", "aku"
+]);
+
+function tokenisasi(teks, filterStop = false) {
+    const list = teks.toLowerCase()
+                     .replace(/[^a-z0-9\s]/g, " ")
+                     .split(/\s+/)
+                     .filter(k => k.length > 1);
+    if (filterStop) {
+        return list.filter(k => !STOPWORDS.has(k));
+    }
+    return list;
 }
 
-// Muat otomatis semua materi dari file .txt
+// Muat materi lokal
 async function muatMateriOtonom() {
     const daftarFile = ["materi.txt", "resep.txt"];
     let teksGabung = "";
@@ -66,23 +77,21 @@ async function muatMateriOtonom() {
             const res = await fetch(file);
             if (res.ok) {
                 const isi = await res.text();
-                teksGabung += "\n\n" + isi;
+                teksGabung += "\n" + isi;
             }
         } catch (e) {}
     }
 
-    // Pisahkan teks berdasarkan paragraf / blok resep utuh
-    const blokRaw = teksGabung.split(/\n\s*\n+/);
+    const barisList = teksGabung.split(/\n+/);
     dokumenMateri = [];
     frekuensiDokumen = {};
 
-    blokRaw.forEach((blok) => {
-        const bersih = blok.trim();
-        if (bersih.length > 10) {
-            const tokenList = tokenisasi(bersih);
+    barisList.forEach((baris) => {
+        const bersih = baris.trim();
+        if (bersih.length > 15) {
+            const tokenList = tokenisasi(bersih, false);
             const tokenUnik = new Set(tokenList);
             
-            // Hitung di berapa dokumen sebuah kata muncul (DF)
             tokenUnik.forEach(t => {
                 frekuensiDokumen[t] = (frekuensiDokumen[t] || 0) + 1;
             });
@@ -99,10 +108,10 @@ async function muatMateriOtonom() {
 }
 muatMateriOtonom();
 
-// Algoritma Penilai Relevansi TF-IDF
-function cariDokumenTerbaik(pertanyaan) {
-    const kataTanya = tokenisasi(pertanyaan);
-    if (kataTanya.length === 0 || totalDokumen === 0) return null;
+// Mesin Pencari Relevansi TF-IDF
+function cariFakta(pertanyaan) {
+    const kataKunci = tokenisasi(pertanyaan, true);
+    if (kataKunci.length === 0 || totalDokumen === 0) return null;
 
     let skorTertinggi = 0;
     let pemenang = null;
@@ -111,76 +120,147 @@ function cariDokumenTerbaik(pertanyaan) {
         let skorDokumen = 0;
         let kataCocok = 0;
 
-        kataTanya.forEach(k => {
+        kataKunci.forEach(k => {
             if (dok.tokenSet.has(k)) {
                 kataCocok++;
-                // Bobot IDF: kata langka bernilai tinggi, kata pasaran bernilai sangat kecil
                 const df = frekuensiDokumen[k] || 1;
                 const idf = Math.log(1 + (totalDokumen / df));
-                
-                // Frekuensi kemunculan kata di dokumen (TF)
                 const tf = dok.tokens.filter(x => x === k).length;
-                
                 skorDokumen += (tf * idf);
             }
         });
 
-        // Bonus jika urutan kata atau judul cocok langsung
-        if (dok.teks.toLowerCase().includes(pertanyaan.toLowerCase().trim())) {
-            skorDokumen *= 2.0;
-        }
-
-        if (skorDokumen > skorTertinggi && kataCocok >= 1) {
+        if (kataCocok > 0 && skorDokumen > skorTertinggi) {
             skorTertinggi = skorDokumen;
             pemenang = dok;
         }
     });
 
-    // Batas minimum ketat: hanya ambil jika skornya benar-benar meyakinkan
-    if (skorTertinggi >= 1.6) {
+    if (skorTertinggi >= 1.5) {
         return pemenang.teks;
     }
     return null;
 }
 
-// Deteksi Respon
+// 1. Kenali Maksud Pertanyaan (Intent Classifier)
+function deteksiMaksud(teks) {
+    const t = teks.toLowerCase();
+    if (t.includes("kenapa") || t.includes("mengapa") || t.includes("untuk apa") || t.includes("tujuan") || t.includes("alasan")) {
+        return "alasan";
+    }
+    if (t.includes("bagaimana") || t.includes("gimana") || t.includes("cara") || t.includes("langkah") || t.includes("solusi") || t.includes("tips")) {
+        return "cara";
+    }
+    if (t.includes("apa itu") || t.includes("apa artinya") || t.includes("siapa") || t.includes("definisi")) {
+        return "definisi";
+    }
+    return "umum";
+}
+
+// 2. Rangkum & Rapikan Jawaban
+function rangkumJawaban(fakta, maksud) {
+    let pembuka = "Berdasarkan penelusuran data materi yang ada:";
+    
+    if (maksud === "alasan") {
+        pembuka = "Mengenai alasan, tujuan, serta latar belakang dari hal yang kamu tanyakan:";
+    } else if (maksud === "cara") {
+        pembuka = "Untuk langkah teknis, tips pengolahan, serta solusi praktisnya:";
+    } else if (maksud === "definisi") {
+        pembuka = "Mengenai pengertian, profil, dan hakikat dasarnya:";
+    }
+
+    return `${pembuka}\n\n👉 **${fakta}**\n\nSemoga intisari jawaban ini tepat dan bermanfaat ya ✌️😅`;
+}
+
+// 3. Proses Jawaban Menyeluruh
 function prosesJawaban(input) {
     const t = input.toLowerCase().trim();
-    const token = tokenisasi(t);
 
-    // 1. Sapaan Ramah
-    if (token.length <= 2 && ["halo", "hallo", "hai", "hi", "oy", "p", "assalamualaikum"].some(k => token.includes(k))) {
+    // Sapaan Ramah
+    if (["halo", "hallo", "hai", "hi", "oy", "p", "assalamualaikum"].includes(t)) {
         return "Halo juga! Senang bisa menyapa kamu. Ada materi atau resep apa yang ingin kita bahas tuntas hari ini? Semoga jawabannya tepat ya ✌️😅";
     }
 
-    // 2. Identitas Bot & Arip Rahman
+    // Identitas Bot, Asal Usul & Tujuan Dibuat
     if (t.includes("kamu siapa") || t.includes("siapa kamu") || t.includes("nama kamu") || 
-        t.includes("pembuat") || t.includes("pencipta") || t.includes("bikin kamu") || t.includes("buat kamu")) {
-        return `Halo! Saya adalah **${NAMA_BOT}**, model kecerdasan buatan mandiri 0 MB yang dirancang dan dikembangkan langsung oleh **${PENCIPTA}** melalui Termux.\n\nSaya membaca ribuan kata materi dan puluhan resep secara independen tanpa bergantung pada server luar. Semoga jawabannya tepat ya ✌️😅`;
+        t.includes("pembuat") || t.includes("pencipta") || t.includes("dibuat") || t.includes("di buat") ||
+        t.includes("bikin kamu") || t.includes("tujuan kamu")) {
+        
+        if (t.includes("tujuan") || t.includes("kenapa") || t.includes("mengapa") || t.includes("untuk apa")) {
+            return `Halo! **Tujuan utama saya diciptakan** adalah sebagai model kecerdasan buatan mandiri 0 MB karya **${PENCIPTA}**, agar mampu mengolah dan menyajikan ribuan data materi pengetahuan serta puluhan resep masakan secara cepat, mandiri, dan bebas ketergantungan dari server luar.\n\nSemoga keberadaan saya bermanfaat untukmu ya ✌️😅`;
+        }
+        
+        return `Halo! Saya adalah **${NAMA_BOT}**, model kecerdasan buatan mandiri 0 MB yang dirancang dan dikembangkan langsung oleh **${PENCIPTA}** melalui terminal Termux. Saya siap membantu menyajikan informasi dari catatan materi lokal. Semoga jawabannya tepat ya ✌️😅`;
     }
 
-    // 3. Pencarian Berbasis TF-IDF ke File .TXT
-    const hasilMateri = cariDokumenTerbaik(input);
-    if (hasilMateri) {
-        return `Halo! Berdasarkan penelusuran materi lokal **OoeR Pro**, berikut informasi lengkap yang berhasil ditemukan:\n\n${hasilMateri}\n\nSemoga penjelasan ini tepat dan bermanfaat ya ✌️😅`;
+    // Curhat & Motivasi
+    if (["capek", "lelah", "gagal", "ekonomi", "duit", "uang", "stres"].some(k => t.includes(k))) {
+        return "Tarik napas dalam-dalam dulu kawan... Tekanan hidup dan lelah itu nyata, tapi fase ini bukan akhir dari perjalananmu. Istirahatkan pikiran malam ini, besok kita tata langkah lagi. Kamu hebat sudah bertahan sejauh ini! Tetap semangat ya ✌️😅";
     }
 
-    // 4. Jawaban Jujur (Tidak Asal Comot Resep)
+    // Pencarian Fakta & Merangkum
+    const fakta = cariFakta(input);
+    if (fakta) {
+        const maksud = deteksiMaksud(input);
+        return rangkumJawaban(fakta, maksud);
+    }
+
+    // Jawaban Jujur
     return `Halo! Terkait pertanyaan "${input}", informasi spesifik mengenai hal tersebut belum tercatat di dalam basis data materi OoeR Pro saat ini.\n\nKamu bisa menambahkan catatan materi baru ke file teks kapan saja agar saya bisa memahaminya. Semoga bisa dimaklumi ya ✌️😅`;
 }
 
+// Efek Mengetik Modern (Typewriter Effect)
+let sedangMengetik = false;
+
+function ketikTeks(elemen, teksLengkap, selesaiCallback) {
+    let index = 0;
+    elemen.innerText = "";
+    
+    const interval = setInterval(() => {
+        if (index < teksLengkap.length) {
+            elemen.innerText += teksLengkap[index];
+            index++;
+            const box = document.getElementById("chat-box");
+            box.scrollTop = box.scrollHeight;
+        } else {
+            clearInterval(interval);
+            sedangMengetik = false;
+            if (selesaiCallback) selesaiCallback();
+        }
+    }, 12); // Kecepatan ketik (12ms per karakter)
+}
+
 function kirimPesan() {
+    if (sedangMengetik) return;
+
     const input = document.getElementById("pesan-input");
     const teks = input.value.trim();
     if (!teks) return;
 
     tambahBubble(teks, "user");
     input.value = "";
+    sedangMengetik = true;
 
+    // Tampilkan animasi status berpikir (Loading)
+    const box = document.getElementById("chat-box");
+    const divLoading = document.createElement("div");
+    divLoading.className = "msg bot thinking";
+    divLoading.id = "status-loading";
+    divLoading.innerHTML = "⚡ <i>Ooer Pro sedang membaca materi & merangkum fakta...</i>";
+    box.appendChild(divLoading);
+    box.scrollTop = box.scrollHeight;
+
+    // Jeda berpikir realistis (700 milidetik seperti AI modern)
     setTimeout(() => {
-        const balasan = prosesJawaban(teks);
-        tambahBubble(balasan, "bot");
-    }, 200);
+        const jawaban = prosesJawaban(teks);
+        divLoading.remove();
+
+        const divBot = document.createElement("div");
+        divBot.className = "msg bot";
+        box.appendChild(divBot);
+
+        ketikTeks(divBot, jawaban, () => {});
+    }, 700);
 }
 
 function tambahBubble(teks, tipe) {
