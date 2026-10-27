@@ -185,7 +185,7 @@ function cekBasaBasi(teks) {
             return "Halo! Ooer Pro siap menyajikan analisis mendalam untukmu. Ada resep masakan, ilmu, atau materi apa hari ini? Semoga jawabannya tepat ya ✌️😅";
         }
     }
-    if (["kamu siapa", "siapa kamu", "nama kamu siapa"].includes(t)) {
+    if (["kamu siapa", "siapa kamu", "nama kamu siapa"].includes(t) || t.includes("pembuat") || t.includes("pencipta") || t.includes("bikin kamu") || t.includes("buat kamu")) {
         return `Halo! Saya ${NAMA_BOT}. Model AI mandiri 0 MB karya ${PENCIPTA} yang membaca ribuan kata materi dan 30 resep secara cepat dan mandiri. Semoga jawabannya tepat ya ✌️😅`;
     }
     return null;
