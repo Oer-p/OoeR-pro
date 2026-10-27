@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OoeR AI Pro - Autonomous Engine</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; }
+    header { background: #1e293b; padding: 15px 20px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    .header-title h1 { font-size: 1.1rem; font-weight: 700; color: #38bdf8; }
+    .header-title p { font-size: 0.75rem; color: #94a3b8; }
+    .badge { background: #0284c7; color: white; padding: 4px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+    #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .msg { max-width: 85%; padding: 14px 18px; border-radius: 16px; font-size: 0.95rem; line-height: 1.6; word-break: break-word; }
+    .msg.user { align-self: flex-end; background: #2563eb; color: white; border-bottom-right-radius: 4px; }
+    .msg.bot { align-self: flex-start; background: #1e293b; color: #e2e8f0; border-bottom-left-radius: 4px; border: 1px solid #334155; }
+    .msg p { margin-bottom: 12px; }
+    .msg p:last-child { margin-bottom: 0; }
+    .input-bar { background: #1e293b; padding: 12px 16px; border-top: 1px solid #334155; display: flex; gap: 10px; }
+    input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 999px; padding: 12px 20px; color: white; font-size: 0.95rem; outline: none; }
+    input:focus { border-color: #38bdf8; }
+    button { background: #0284c7; border: none; border-radius: 999px; padding: 0 22px; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #0369a1; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-title">
+      <h1>⚡ OoeR AI Pro</h1>
+      <p>Karya Independen Arip Rahman • 0 MB Web Engine</p>
+    </div>
+    <div class="badge">Online</div>
+  </header>
+
+  <div id="chat-box">
+    <div class="msg bot">
+      <p>Halo! Saya <strong>OoeR AI Pro</strong>, kecerdasan buatan mandiri yang dikembangkan langsung oleh <strong>Arip Rahman</strong>.</p>
+      <p>Saya siap menjawab pertanyaan seputar resep masakan, realitas sosial, keuangan, identitas, maupun sains dengan analisis 4-in-1 yang mendalam. Apa yang ingin kamu tanyakan hari ini? Semoga jawabannya tepat ya ✌️😅</p>
+    </div>
+  </div>
+
+  <form class="input-bar" id="chat-form">
+    <input type="text" id="user-input" placeholder="Tanyakan resep masakan, kehidupan, atau sains..." autocomplete="off">
+    <button type="submit">Kirim</button>
+  </form>
+
+  <script>
+    // --- BASIS DATA LOKAL BUKU MATERI ---
+    const MATERI_TEKS = `
+    OoeR AI Pro adalah kecerdasan buatan mandiri berukuran 0 MB yang dirancang, diciptakan, dan dikembangkan secara independen oleh Arip Rahman melalui lingkungan terminal Termux.
+    Arip Rahman adalah pengembang utama OoeR AI Pro yang memiliki lingkaran pertemanan solid dan saling tolong-menolong bersama Samsul, Bey, Ubed, Ikbal, Mang Alfi, Dokek, dan Gipari Adizkiri.
+    Pemenuhan kebutuhan pokok dan pengelolaan uang secara sadar jauh lebih mendasar daripada memaksakan gaya hidup berlebihan hanya demi mengejar pengakuan atau gengsi sosial semata.
+    Solusi sejati untuk mencapai kestabilan finansial dan menjadi kaya adalah perpaduan antara meningkatkan nilai keahlian diri, mengendalikan kebocoran pengeluaran akibat gengsi, serta konsisten membangun tabungan dan aset produktif.
+    Kerja keras memerlukan arah yang jelas dan strategi yang tepat, sebab mengerahkan tenaga tanpa perhitungan sering kali hanya menimbulkan keletihan fisik tanpa hasil yang sepadan.
+    Dana darurat dan tabungan terencana merupakan pelindung utama bagi sebuah keluarga dalam menghadapi ketidakpastian ekonomi dan biaya hidup yang tidak terduga.
+    Kualitas sahabat sejati teruji dari ketulusan sikap dan kesetiaan hadir saat seseorang sedang berada di titik terendah kehidupannya, bukan dari ramainya kawan saat berada di puncak kesuksesan.
+    Fase belum memiliki pekerjaan formal atau menganggur adalah masa transisi untuk belajar dan menata ulang rencana hidup, bukan vonis mutlak atas kegagalan seseorang.
+    Kopi mengandung senyawa kafein yang bekerja dengan memblokir reseptor adenosin di otak sehingga mencegah rasa kantuk dan memicu kewaspadaan.
+    Lubang hitam memiliki tarikan gravitasi yang begitu ekstrem sampai cahaya sekalipun tidak memiliki kecepatan yang cukup untuk meloloskan diri.
+    Baterai ponsel berbasis lithium-ion memiliki usia pakai lebih awet jika dijaga kapasitas dayanya antara 20 persen hingga 80 persen.
+    Nasi goreng dibuat dari nasi dingin yang ditumis bersama bumbu bawang merah, bawang putih, cabai, telur orak-arik, dan kecap manis hingga matang merata.
+    Ayam goreng crispy menggunakan campuran tepung terigu dan maizena dengan teknik pencelupan telur lalu digoreng pada minyak bersuhu 170 hingga 175 derajat Celsius sampai suhu dalam daging mencapai 74 derajat Celsius.
+    Rendang daging sapi dimasak perlahan selama 3 hingga 4 jam menggunakan santan kelapa kental dan rempah lengkap dengan api kecil sampai cairan menyusut dan bumbu meresap berwarna gelap.
+    Seblak kerupuk pedas dibuat dari kerupuk mentah yang direndam air hangat hingga kenyal, lalu ditumis bersama bumbu kencur, bawang putih, cabai rawit pedas, telur orak-arik, dan sedikit kuah panas.
+    Jika masakan terlalu asin, solusinya adalah menambahkan bahan utama tawar, air, atau kaldu tanpa garam, bukan menambahkan gula.
+    Jika masakan terlalu pedas, solusinya adalah menambahkan santan, bahan berlemak, atau kuah tawar untuk menyeimbangkan sensasi rasa pedas di lidah.
+    Jika santan pecah saat dimasak, penyebabnya adalah api terlalu besar dan kurang diaduk; gunakan selalu api kecil-sedang sambil diaduk teratur perlahan.
+    Jika kue bantat dan tidak mengembang, penyebabnya adalah takaran bahan pengembang kedaluwarsa, adonan diaduk terlalu lama, atau suhu oven yang tidak stabil.
+    `;
+
+    const KAMUS_ALIAS = {
+      "black hole": "lubang hitam", "blackhole": "lubang hitam", "hp": "ponsel baterai", "hape": "ponsel baterai",
+      "ngecas": "daya baterai pengisian", "cas": "daya baterai", "melek": "kewaspadaan kantuk tidur",
+      "begadang": "kantuk tidur malam", "narik": "tarikan gravitasi", "tarik": "tarikan gravitasi",
+      "gelap": "cahaya", "glap": "cahaya", "sahabat": "teman kawan sahabat", "teman": "sahabat kawan teman",
+      "nganggur": "menganggur belum bekerja formal", "pesantren": "pesantren menuntut ilmu agama santri",
+      "kerja": "bekerja pekerjaan pabrik kantor", "gengsi": "gaya hidup gengsi pengakuan sosial",
+      "insecure": "cemas iri membandingkan media sosial", "kaya": "finansial kekayaan ekonomi tabungan aset",
+      "asin": "terlalu asin keasinan garam", "pedas": "terlalu pedas kepedasan cabai",
+      "bantat": "kue bantat mengembang oven", "pecah": "santan pecah masak kuah"
+    };
+
+    const KAMUS_SLANG = {
+      "kpi": "kopi", "knp": "kenapa", "bsa": "bisa", "bkin": "bikin", "org": "orang", "bgt": "banget",
+      "smua": "semua", "bnda": "benda", "gmna": "gimana", "gmn": "gimana", "tdr": "tidur", "kcng": "kucing",
+      "btre": "baterai", "batre": "baterai", "otk": "otak"
+    };
+
+    const STOPWORDS = new Set(["apa", "apakah", "siapa", "kenapa", "mengapa", "bagaimana", "kapan", "di", "ke", "dari", "yang", "itu", "ini", "dan", "atau", "banget", "karena", "ada", "bisa", "ya", "sih", "kan", "dong", "kah", "kok", "gak", "nggak", "gk", "lah", "pun", "adalah", "yaitu", "tentang", "pada", "untuk", "terus", "buat", "gimana", "bikin", "saja", "mana", "punya", "kadang"]);
+
+    const BANK_CONTOH = {
+      "gengsi": "sebagai contoh konkretnya, hal ini mirip seseorang yang memaksakan cicilan mobil mewah hanya demi terlihat mapan, padahal operasional hariannya mengorbankan stabilitas kebutuhan pokok keluarga",
+      "kaya": "sebagai analogi visualnya, membangun stabilitas finansial persis seperti mengisi air ke dalam wadah; sebesar apa pun aliran uang yang masuk, wadah tak akan penuh jika kebocoran gaya hidup di dasarnya tidak pernah diperbaiki",
+      "uang": "ibarat pelampung keselamatan pada kapal laut; keberadaan dana darurat menjaga kita tetap bertahan saat ombak krisis ekonomi datang tiba-tiba",
+      "sahabat": "layaknya formasi jari pada tangan kita; masing-masing memiliki peran berbeda, namun saat menghadapi beban berat, semuanya merapat membentuk satu kepalan yang solid",
+      "nganggur": "fase ini serupa dengan atlet di ruang ganti; waktu jeda bukan tanda kekalahan, melainkan saat menata napas, memulihkan stamina, dan merancang taktik sebelum bertanding lagi",
+      "kopi": "mekanismenya ibarat menempelkan plester pada sensor alarm kebakaran; bunyi peringatan diredam sementara waktu, meskipun partikel kelelahan fisik di tubuh masih tetap ada",
+      "lubang": "fenomena ini persis seperti pusaran air raksasa di samudera lepas, di mana perahu secepat apa pun yang melintasi batasnya akan terseret menuju pusat gravitasinya",
+      "baterai": "karakteristik ini bekerja menyerupai kapasitas paru-paru biologis yang paling stabil saat bernapas wajar tanpa dipaksa di titik 100 persen atau 0 persen",
+      "seblak": "perpaduan ini ibarat meracik hidangan jalanan dengan cita rasa kencur yang dominan, di mana tingkat kekenyalan kerupuk harus dikontrol ketat agar tidak hancur menjadi bubur",
+      "asin": "sebagai ilustrasi praktisnya, hal ini persis seperti melarutkan sesendok garam ke segelas air pekat; rasa asin yang tajam hanya bisa dinetralisir dengan menambah air tawar, bukan dengan menutupinya memakai gula",
+      "pecah": "sebagai gambaran fisiknya, peristiwa ini serupa dengan emulsi minyak dan air yang kehilangan kestabilan ikatannya akibat pergolakan suhu tinggi yang terlalu agresif"
+    };
+
+    let subjekAktif = null;
+
+    function normalisasi(teks) {
+      let t = teks.toLowerCase();
+      for (const [k, v] of Object.entries(KAMUS_ALIAS)) {
+        t = t.replace(new RegExp('\\b' + k + '\\b', 'g'), v);
+      }
+      const kata = t.match(/\b[a-zA-Z0-9_]+\b/g) || [];
+      return kata.map(k => {
+        let asli = KAMUS_SLANG[k] || k;
+        for (const akh of ["nya", "kan", "an", "lah", "kah", "ku", "mu"]) {
+          if (asli.endsWith(akh) && asli.length - akh.length >= 3) {
+            asli = asli.slice(0, -akh.length);
+            break;
+          }
+        }
+        return asli;
+      }).join(" ");
+    }
+
+    function hitungEdit(s1, s2) {
+      if (s1.length < s2.length) return hitungEdit(s2, s1);
+      if (s2.length === 0) return s1.length;
+      let prev = Array.from({length: s2.length + 1}, (_, i) => i);
+      for (let i = 0; i < s1.length; i++) {
+        let curr = [i + 1];
+        for (let j = 0; j < s2.length; j++) {
+          let tambah = prev[j + 1] + 1;
+          let hapus = curr[j] + 1;
+          let ubah = prev[j] + (s1[i] !== s2[j] ? 1 : 0);
+          curr.push(Math.min(tambah, hapus, ubah));
+        }
+        prev = curr;
+      }
+      return prev[prev.length - 1];
+    }
+
+    function mirip(s1, s2) {
+      if (s1 === s2) return 1.0;
+      if (Math.abs(s1.length - s2.length) > 2) return 0.0;
+      const j = hitungEdit(s1, s2);
+      const m = Math.max(s1.length, s2.length);
+      return m === 0 ? 1.0 : 1.0 - (j / m);
+    }
+
+    function prosesTanya(pertanyaan) {
+      const pNorm = normalisasi(pertanyaan);
+      const tokens = (pNorm.match(/\b[a-zA-Z0-9_]+\b/g) || []).filter(k => !STOPWORDS.has(k));
+
+      if (subjekAktif && tokens.length <= 2 && !tokens.includes(subjekAktif)) {
+        tokens.push(subjekAktif);
+      }
+
+      if (tokens.length === 0) {
+        return "<p>Halo! Silakan ketik pertanyaan seputar resep masakan, finansial, sains, atau kehidupan. Semoga jawabannya tepat ya ✌️😅</p>";
+      }
+
+      const kalimatList = MATERI_TEKS.split(/[\n\.]+/).map(k => k.trim()).filter(k => k.length > 8);
+      let skorList = [];
+
+      for (const k of kalimatList) {
+        const kNorm = normalisasi(k);
+        const kTokens = kNorm.match(/\b[a-zA-Z0-9_]+\b/g) || [];
+        const kSet = new Set(kTokens);
+        let skor = 0.0;
+        let cocok = 0;
+
+        for (const t of tokens) {
+          if (kSet.has(t)) {
+            skor += t.length * 1.2;
+            cocok++;
+            continue;
+          }
+          for (const km of kTokens) {
+            const sim = mirip(t, km);
+            if (sim >= 0.70) {
+              skor += km.length * sim;
+              cocok++;
+              break;
+            }
+          }
+        }
+        if (skor >= 2.0 && cocok >= 1) {
+          skorList.push({ skor, kalimat: k, tokens: kTokens });
+        }
+      }
+
+      if (skorList.length === 0) {
+        return `<p>Halo! Terkait pertanyaan kamu, informasi spesifik mengenai hal tersebut belum tercatat di dalam basis data Ooer Pro saat ini.</p><p>Semoga di pembaruan materi berikutnya hal ini sudah tersedia ya ✌️😅</p>`;
+      }
+
+      skorList.sort((a, b) => b.skor - a.skor);
+      const fakta1 = skorList[0].kalimat;
+      const kataM = skorList[0].tokens;
+
+      for (const km of tokens) {
+        if (km.length >= 4) { subjekAktif = km; break; }
+      }
+
+      let f2Teks = "";
+      if (skorList.length > 1 && skorList[1].skor >= skorList[0].skor * 0.40) {
+        f2Teks = ` Menariknya lagi, pemahaman ini saling melengkapi dengan kenyataan bahwa ${skorList[1].kalimat.toLowerCase()}`;
+      }
+
+      let analogi = "mekanismenya bekerja selaras dengan takaran bahan dan pengendalian proses yang saling melengkapi demi menciptakan hasil akhir yang konsisten";
+      for (const km of kataM) {
+        for (const [kunci, cnt] of Object.entries(BANK_CONTOH)) {
+          if (mirip(km, kunci) >= 0.75 || km.includes(kunci)) {
+            analogi = cnt;
+            break;
+          }
+        }
+      }
+
+      const p1 = `Halo! Terkait pertanyaan kamu, mari kita bedah duduk perkaranya secara jujur dan to-the-point: faktanya jelas membuktikan bahwa <strong>${fakta1}</strong>.${f2Teks} Kenyataan ini menegaskan bahwa kita tidak perlu bingung oleh proses yang rumit, karena panduan dasarnya memang sudah tertata se-nyata itu.`;
+      const p2 = `Jika kita telusuri secara terstruktur, tahapan ini berlangsung melalui prinsip pengolahan yang sangat runtut dan konsisten. Setiap unsur, takaran, dan perlakuan di dalamnya bekerja saling mengunci demi mempertahankan efisiensi fungsinya, sehingga hasil akhir yang didapatkan merupakan konsekuensi logis dari keteraturan langkah yang dijalankan secara disiplin.`;
+      const p3 = `Biar lebih mudah dan dekat untuk dibayangkan dalam praktik nyata, ${analogi}. Melalui perumpamaan nyata tersebut, kita diajak menyadari betapa pentingnya ketepatan teknik dan kesabaran proses demi keberhasilan jangka panjang.`;
+      const p4 = `Ditinjau dari perspektif yang lebih luas, integrasi antara pemahaman bahan dan langkah teknis ini membuktikan betapa selarasnya setiap unsur dalam menopang tujuannya. Seluruh pemaparan tadi bermuara pada satu pemahaman utuh agar kamu mendapatkan gambaran yang jernih dan berhasil mempraktikkannya secara tuntas.<br><br><strong>Semoga jawabannya tepat ya ✌️😅</strong>`;
+
+      return `<p>${p1}</p><p>${p2}</p><p>${p3}</p><p>${p4}</p>`;
+    }
+
+    // --- INTERFACE EVENTS ---
+    const chatBox = document.getElementById("chat-box");
+    const chatForm = document.getElementById("chat-form");
+    const userInput = document.getElementById("user-input");
+
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const txt = userInput.value.trim();
+      if (!txt) return;
+
+      const uMsg = document.createElement("div");
+      uMsg.className = "msg user";
+      uMsg.textContent = txt;
+      chatBox.appendChild(uMsg);
+      userInput.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      setTimeout(() => {
+        const bMsg = document.createElement("div");
+        bMsg.className = "msg bot";
+        bMsg.innerHTML = prosesTanya(txt);
+        chatBox.appendChild(bMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 300);
+    });
+  </script>
+</body>
+</html>
