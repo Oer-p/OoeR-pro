@@ -8,12 +8,12 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #0b1120; color: #f8fafc; display: flex; flex-direction: column; height: 100dvh; }
         header { background-color: #0f172a; padding: 14px 20px; border-bottom: 1px solid #1e293b; text-align: center; }
-        header h1 { font-size: 1.1rem; color: #38bdf8; font-weight: 700; }
+        header h1 { font-size: 1.1rem; color: #38bdf8; font-weight: 700; letter-spacing: 0.5px; }
         header p { font-size: 0.75rem; color: #94a3b8; }
         #chat-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-        .msg { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.92rem; line-height: 1.5; word-wrap: break-word; white-space: pre-wrap; }
-        .bot { align-self: flex-start; background-color: #1e293b; color: #e2e8f0; border-bottom-left-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); }
-        .user { align-self: flex-end; background-color: #2563eb; color: #ffffff; border-bottom-right-radius: 4px; }
+        .msg { max-width: 88%; padding: 13px 17px; border-radius: 16px; font-size: 0.92rem; line-height: 1.6; word-wrap: break-word; white-space: pre-wrap; }
+        .bot { align-self: flex-start; background-color: #1e293b; color: #e2e8f0; border-bottom-left-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25); border: 1px solid #334155; }
+        .user { align-self: flex-end; background-color: #0284c7; color: #ffffff; border-bottom-right-radius: 4px; }
         #input-area { background-color: #0f172a; padding: 12px 14px; border-top: 1px solid #1e293b; display: flex; gap: 8px; align-items: center; }
         #pesan-input { flex: 1; background-color: #1e293b; border: 1px solid #334155; border-radius: 24px; padding: 12px 18px; color: #f8fafc; font-size: 0.9rem; outline: none; }
         #pesan-input:focus { border-color: #38bdf8; }
@@ -25,17 +25,17 @@
 
 <header>
     <h1>⚡ OoeR AI Pro</h1>
-    <p>Dikembangkan oleh Arip Rahman</p>
+    <p>Model Mandiri 0 MB — Karya Arip Rahman</p>
 </header>
 
 <div id="chat-box">
-    <div class="msg bot">Halo! Saya <b>OoeR AI Pro</b>, kecerdasan buatan mandiri yang dikembangkan langsung oleh <b>Arip Rahman</b>.
+    <div class="msg bot">Halo! Saya <b>OoeR AI Pro</b>, kecerdasan buatan mandiri 0 MB yang dikembangkan langsung oleh <b>Arip Rahman</b>.
 
-Saya siap menjawab pertanyaan seputar resep masakan, realitas sosial, keuangan, identitas, maupun sains dengan analisis 4-in-1 yang mendalam. Apa yang ingin kamu tanyakan hari ini? Semoga jawabannya tepat ya ✌️😅</div>
+Saya membaca dan menguasai seluruh materi serta resep lokal secara mandiri tanpa server luar. Silakan tanyakan resep masakan, ilmu pengetahuan, atau diskusikan hal yang sedang kamu pikirkan. Semoga jawabannya tepat ya ✌️😅</div>
 </div>
 
 <div id="input-area">
-    <input type="text" id="pesan-input" placeholder="Tanyakan resep masakan, kehidupan..." autocomplete="off">
+    <input type="text" id="pesan-input" placeholder="Tanyakan resep masakan, ilmu pengetahuan..." autocomplete="off">
     <button id="kirim-btn" onclick="kirimPesan()">Kirim</button>
 </div>
 
@@ -43,273 +43,141 @@ Saya siap menjawab pertanyaan seputar resep masakan, realitas sosial, keuangan, 
 const NAMA_BOT = "Ooer Pro";
 const PENCIPTA = "Arip Rahman";
 
-const KAMUS_ALIAS = {
-    "black hole": "lubang hitam", "blackhole": "lubang hitam",
-    "hp": "ponsel baterai", "hape": "ponsel baterai",
-    "ngecas": "daya baterai pengisian", "cas": "daya baterai",
-    "melek": "kewaspadaan kantuk tidur", "begadang": "kantuk tidur malam",
-    "narik": "tarikan gravitasi", "tarik": "tarikan gravitasi",
-    "gelap": "cahaya", "glap": "cahaya",
-    "sahabat": "teman kawan sahabat", "teman": "sahabat kawan teman",
-    "nganggur": "menganggur belum bekerja formal",
-    "pesantren": "pesantren menuntut ilmu agama santri",
-    "kerja": "bekerja pekerjaan pabrik kantor",
-    "gengsi": "gaya hidup gengsi pengakuan sosial",
-    "insecure": "cemas iri membandingkan media sosial",
-    "kaya": "finansial kekayaan ekonomi tabungan aset",
-    "asin": "terlalu asin keasinan garam",
-    "pedas": "terlalu pedas kepedasan cabai",
-    "bantat": "kue bantat mengembang oven",
-    "pecah": "santan pecah masak kuah",
-    "alot": "daging keras empuk melunak"
-};
+// Database Blok Pengetahuan
+let bankMateri = [];
 
-const KAMUS_SLANG = {
-    "kpi": "kopi", "knp": "kenapa", "bsa": "bisa", "bkin": "bikin",
-    "org": "orang", "bgt": "banget", "smua": "semua", "bnda": "benda",
-    "gmna": "gimana", "gmn": "gimana", "tdr": "tidur", "kcng": "kucing",
-    "btre": "baterai", "batre": "baterai", "otk": "otak", "krja": "kerja",
-    "bakar": "panggang bakar", "goreng": "goreng crispy renyah"
-};
-
-const STOPWORDS = new Set([
-    "apa", "apakah", "siapa", "kenapa", "mengapa", "bagaimana", "kapan", "di", "ke",
-    "dari", "yang", "itu", "ini", "dan", "atau", "banget", "karena", "ada", "bisa",
-    "ya", "sih", "kan", "dong", "kah", "kok", "gak", "nggak", "gk", "lah", "pun",
-    "adalah", "yaitu", "tentang", "pada", "untuk", "terus", "buat", "gimana", "bikin",
-    "saja", "mana", "punya", "kadang", "kalau", "kalo", "supaya", "agar"
-]);
-
-const BANK_CONTOH = {
-    "gengsi": "sebagai contoh konkretnya, hal ini mirip seseorang yang memaksakan cicilan mobil mewah hanya demi terlihat mapan, padahal operasional hariannya mengorbankan kebutuhan pokok keluarga",
-    "kaya": "sebagai analogi visualnya, membangun stabilitas finansial persis seperti mengisi air ke wadah; sebesar apa pun uang masuk, wadah tak akan penuh jika kebocoran gaya hidup tidak ditambal",
-    "uang": "ibarat pelampung keselamatan di kapal; memiliki dana darurat menjaga kita tetap bertahan saat ombak krisis ekonomi datang tiba-tiba",
-    "sahabat": "layaknya formasi jari di tangan kita; masing-masing memiliki peran berbeda, namun saat beban datang, semuanya merapat membentuk kepalan yang solid",
-    "teman": "layaknya formasi jari di tangan kita; masing-masing memiliki peran berbeda, namun saat beban datang, semuanya merapat membentuk kepalan yang solid",
-    "nganggur": "fase ini serupa dengan atlet di ruang ganti; waktu jeda bukan tanda kekalahan, melainkan saat memulihkan stamina dan taktik sebelum bertanding lagi",
-    "insecure": "fenomena ini serupa dengan membandingkan dapur rumah kita yang berantakan dengan etalase toko yang sengaja ditata gemerlap di media sosial",
-    "kopi": "mekanismenya ibarat menempelkan plester pada sensor alarm kebakaran; bunyi peringatan diredam sementara waktu, meskipun partikel kelelahan di tubuh masih ada",
-    "lubang": "fenomena ini persis seperti pusaran air raksasa di samudera lepas, di mana perahu secepat apa pun yang melintasi batasnya akan terseret ke pusatnya",
-    "baterai": "karakteristik ini bekerja menyerupai kapasitas paru-paru biologis yang paling stabil saat bernapas wajar tanpa dipaksa di titik 100 persen atau 0 persen",
-    "arip": "layaknya pengembang independen yang merakit sistem di ruang kerjanya; keterbatasan sarana justru melahirkan inovasi cerdas yang mandiri",
-    "asin": "sebagai ilustrasi praktisnya, hal ini persis seperti melarutkan sesendok garam ke dalam segelas air pekat; rasa asin yang tajam hanya bisa dinetralisir dengan memperbesar volume air tawarnya, bukan dengan menutupinya memakai gula",
-    "pedas": "ibarat meredam sengatan zat capsaicin yang larut dalam minyak; molekul lemak pada santan atau susu bertindak mengikat panas tersebut agar tidak langsung membakar lidah",
-    "pecah": "sebagai gambaran fisiknya, peristiwa ini serupa dengan emulsi minyak dan air yang kehilangan kestabilan ikatannya akibat pergolakan suhu tinggi yang terlalu agresif",
-    "rendang": "proses panjang ini serupa dengan penempaan logam secara perlahan; panas yang konsisten mengurai serat kasar daging sapi sekaligus mematangkan bumbu rempah hingga menyatu pekat sempurna",
-    "seblak": "perpaduan ini ibarat meracik hidangan jalanan dengan cita rasa kencur yang dominan, di mana tingkat kekenyalan kerupuk harus dikontrol ketat agar tidak hancur menjadi bubur"
-};
-
-let daftarKalimat = [];
-let subjekAktif = null;
-
-// Muat materi.txt dan resep.txt otomatis
+// Muat materi.txt dan resep.txt utuh per blok/paragraf
 async function muatDatabase() {
-    let teksSemua = "";
     const fileDaftar = ["materi.txt", "resep.txt"];
+    let teksSemua = "";
     for (const f of fileDaftar) {
         try {
             const res = await fetch(f);
             if (res.ok) {
                 const txt = await res.text();
-                teksSemua += "\n" + txt;
+                teksSemua += "\n\n" + txt;
             }
         } catch (e) {}
     }
-    const rawKalimat = teksSemua.split(/[\n\.]+/);
-    daftarKalimat = rawKalimat.map(k => k.trim()).filter(k => k.length > 8);
+    // Pisahkan per paragraf/blok materi utuh (bukan per titik)
+    const blok = teksSemua.split(/\n\s*\n+/);
+    bankMateri = blok.map(b => b.trim()).filter(b => b.length > 15);
 }
 muatDatabase();
 
-function normalisasiTeks(teks) {
+// Kamus Penyerapan Istilah & Slang
+const KAMUS_ALIAS = {
+    "blackhole": "lubang hitam", "black hole": "lubang hitam",
+    "hp": "ponsel baterai", "hape": "ponsel baterai", "cas": "daya baterai charger",
+    "ngecas": "daya baterai pengisian", "begadang": "tidur malam kantuk",
+    "nganggur": "bekerja menganggur karir kerja", "insecure": "percaya diri cemas",
+    "bikin": "cara membuat resep langkah memasak",
+    "masak": "cara membuat resep langkah memasak",
+    "resep": "bahan takaran bumbu cara membuat"
+};
+
+const STOPWORDS = new Set([
+    "apa", "apakah", "siapa", "kenapa", "mengapa", "bagaimana", "gimana", "kapan",
+    "di", "ke", "dari", "yang", "itu", "ini", "dan", "atau", "karena", "ada",
+    "bisa", "ya", "sih", "kan", "dong", "kah", "kok", "gak", "nggak", "gk",
+    "lah", "pun", "adalah", "yaitu", "tentang", "pada", "untuk", "buat",
+    "tolong", "coba", "jelaskan", "kasih", "tahu"
+]);
+
+function normalisasi(teks) {
     let t = teks.toLowerCase();
     for (const [k, v] of Object.entries(KAMUS_ALIAS)) {
         t = t.replace(new RegExp('\\b' + k + '\\b', 'g'), v);
     }
     const kataList = t.match(/[a-zA-Z0-9_]+/g) || [];
-    const hasil = [];
-    const akhiran = ["nya", "kan", "an", "lah", "kah", "ku", "mu"];
-    for (let kata of kataList) {
-        kata = KAMUS_SLANG[kata] || kata;
-        for (const akh of akhiran) {
-            if (kata.endsWith(akh) && kata.length - akh.length >= 3) {
-                kata = kata.slice(0, -akh.length);
-                break;
-            }
-        }
-        hasil.push(kata);
-    }
-    return hasil.join(" ");
+    return kataList.filter(k => !STOPWORDS.has(k) && k.length > 2);
 }
 
-function hitungJarakEdit(s1, s2) {
-    if (s1.length < s2.length) return hitungJarakEdit(s2, s1);
-    if (s2.length === 0) return s1.length;
-    let prev = Array.from({length: s2.length + 1}, (_, i) => i);
-    for (let i = 0; i < s1.length; i++) {
-        let curr = [i + 1];
-        for (let j = 0; j < s2.length; j++) {
-            let tambah = prev[j + 1] + 1;
-            let hapus = curr[j] + 1;
-            let ubah = prev[j] + (s1[i] !== s2[j] ? 1 : 0);
-            curr.push(Math.min(tambah, hapus, ubah));
-        }
-        prev = curr;
-    }
-    return prev[prev.length - 1];
-}
-
-function mirip(s1, s2) {
-    if (s1 === s2) return 1.0;
-    if (Math.abs(s1.length - s2.length) > 2) return 0.0;
-    const jarak = hitungJarakEdit(s1, s2);
-    const maks = Math.max(s1.length, s2.length);
-    return maks === 0 ? 1.0 : 1.0 - (jarak / maks);
-}
-
-function cekCurhat(teks) {
-    const t = teks.toLowerCase();
-    const sinyal = ["nyerah", "gagal", "capek", "lelah", "berat", "ekonomi", "duit", "uang", "rezeki", "beban", "hancur", "putus asa", "stres", "pusing"];
-    let terdeteksi = 0;
-    sinyal.forEach(w => { if (t.includes(w)) terdeteksi++; });
-    if (terdeteksi >= 2 || (t.includes("nyerah") && t.includes("gagal")) || (t.includes("ekonomi") && t.includes("berat"))) {
-        return "Duduk sebentar, mari kita tarik napas dalam-dalam... Aku tahu kamu sedang berada di titik yang sangat berat.\n\nBeban ekonomi dan tuntutan hidup memang hal yang paling melelahkan di dunia nyata. Namun ingatlah, fase lelah saat ini bukan penentu akhir dari seluruh perjalanan hidupmu. Istirahatkan tubuh dan pikiranmu malam ini; kita bisa menata kembali langkah perjuanganmu secara perlahan besok hari.\n\nKamu luar biasa sudah bertahan dan berjuang sejauh ini, Arip. Semoga obrolan kita ini bisa melegakan pikiranmu ya ✌️😅";
-    }
-    return null;
-}
-
+// 1. Cek Sapaan & Basa-Basi
 function cekBasaBasi(teks) {
     const t = teks.toLowerCase().trim();
-    const kataList = t.match(/[a-zA-Z0-9_]+/g) || [];
-    for (const k of kataList) {
-        if (["hhii", "hii", "hee", "hy", "hei", "halo", "hallo", "hai", "helo", "oy", "p"].includes(k) && kataList.length <= 2) {
-            return "Halo! Ooer Pro siap menyajikan analisis mendalam untukmu. Ada resep masakan, ilmu, atau materi apa hari ini? Semoga jawabannya tepat ya ✌️😅";
-        }
+    const kata = t.match(/[a-zA-Z0-9_]+/g) || [];
+    
+    if (kata.length <= 2 && ["halo", "hallo", "hai", "hi", "oy", "p", "hei", "helo", "assalamualaikum"].includes(kata[0])) {
+        return "Halo juga! Senang bisa menyapa kamu. Ada materi atau resep masakan apa yang ingin kita bahas tuntas hari ini? Semoga jawabannya tepat ya ✌️😅";
     }
-    if (["kamu siapa", "siapa kamu", "nama kamu siapa"].includes(t) || t.includes("pembuat") || t.includes("pencipta") || t.includes("bikin kamu") || t.includes("buat kamu")) {
-        return `Halo! Saya ${NAMA_BOT}. Model AI mandiri 0 MB karya ${PENCIPTA} yang membaca ribuan kata materi dan 30 resep secara cepat dan mandiri. Semoga jawabannya tepat ya ✌️😅`;
+    
+    if (t.includes("kamu siapa") || t.includes("siapa kamu") || t.includes("nama kamu") || t.includes("pembuat") || t.includes("pencipta") || t.includes("bikin kamu") || t.includes("buat kamu") || t.includes("arip")) {
+        return `Halo! Saya adalah **${NAMA_BOT}**, model kecerdasan mandiri 0 MB yang dirancang dan dikembangkan langsung oleh **${PENCIPTA}**.\n\nSaya tidak bergantung pada server luar, melainkan membaca dan menganalisis database materi lokal secara otonom. Ada yang bisa saya bantu? ✌️😅`;
+    }
+    
+    if (["terima kasih", "makasih", "thanks", "tengkyu"].some(k => t.includes(k))) {
+        return "Sama-sama! Senang bisa membantu menyajikan informasi untukmu. Kalau ada pertanyaan lain seputar resep atau sains, langsung tanyakan saja ya! ✌️😎";
+    }
+    
+    return null;
+}
+
+// 2. Cek Curhat & Empati
+function cekCurhat(teks) {
+    const t = teks.toLowerCase();
+    const kataEmosi = ["capek", "lelah", "gagal", "berat", "ekonomi", "duit", "uang", "stres", "pusing", "nyerah", "hancur", "putus asa", "beban"];
+    const jumlahKena = kataEmosi.filter(k => t.includes(k)).length;
+    
+    if (jumlahKena >= 2 || (t.includes("capek") && t.includes("hidup")) || (t.includes("ekonomi") && t.includes("berat"))) {
+        return `Tarik napas dalam-dalam dulu kawan... Aku mengerti apa yang kamu rasakan.\n\nTekanan hidup, urusan finansial, dan rasa lelah memang kenyataan yang sangat nyata di dunia ini. Tapi ingat, rasa lelah hari ini bukan berarti perjuanganmu sia-sia. Luangkan waktu untuk istirahat malam ini, tenangkan pikiran, dan esok kita mulai menata langkah lagi perlahan.\n\nKamu hebat sudah bertahan sejauh ini! Tetap semangat ya ✌️😅`;
     }
     return null;
 }
 
-function cariFaktaOtonom(inputUser) {
-    const teksBersih = normalisasiTeks(inputUser);
-    const kataTanya = teksBersih.match(/[a-zA-Z0-9_]+/g) || [];
-    let kataKunci = kataTanya.filter(k => !STOPWORDS.has(k));
+// 3. Pencarian Cerdas Berbasis Relevansi Kata Kunci
+function cariMateriTepat(pertanyaan) {
+    const kataKunci = normalisasi(pertanyaan);
+    if (kataKunci.length === 0) return null;
 
-    if (subjekAktif && kataKunci.length <= 2) {
-        if (!kataKunci.includes(subjekAktif)) kataKunci.push(subjekAktif);
-    }
-    if (kataKunci.length === 0) return { fakta: [], subjek: subjekAktif };
+    let skorTertinggi = 0;
+    let blokTerbaik = null;
 
-    const skorList = [];
-    for (const kalimat of daftarKalimat) {
-        const kalimatNorm = normalisasiTeks(kalimat);
-        const kataMateri = kalimatNorm.match(/[a-zA-Z0-9_]+/g) || [];
-        const kataMateriSet = new Set(kataMateri);
+    for (const blok of bankMateri) {
+        const blokLower = blok.toLowerCase();
+        let skor = 0;
+        let kataCocok = 0;
 
-        let skor = 0.0;
-        let kataTercocok = 0;
         for (const k of kataKunci) {
-            if (kataMateriSet.has(k)) {
-                skor += k.length * 1.2;
-                kataTercocok++;
-                continue;
-            }
-            for (const km of kataMateri) {
-                const sim = mirip(k, km);
-                if (sim >= 0.70) {
-                    skor += (km.length * sim);
-                    kataTercocok++;
-                    break;
-                }
+            if (blokLower.includes(k)) {
+                skor += (k.length * 2); // Bobot panjang kata
+                kataCocok++;
             }
         }
-        if (skor >= 2.0 && kataTercocok >= 1) {
-            skorList.push({ skor, kalimat, kataMateri });
-        }
-    }
 
-    if (skorList.length === 0) return { fakta: [], subjek: subjekAktif };
+        // Hitung kepadatan kecocokan (Kualifikasi ketat agar tidak asal comot)
+        if (kataCocok > 0) {
+            const rasioKecocokan = kataCocok / kataKunci.length;
+            const skorTotal = skor * (1 + rasioKecocokan);
 
-    skorList.sort((a, b) => b.skor - a.skor);
-    const faktaUtama = skorList[0];
-    const faktaTerpilih = [faktaUtama];
-
-    for (const km of kataKunci) {
-        if (km.length >= 4) {
-            subjekAktif = km;
-            break;
-        }
-    }
-
-    if (skorList.length > 1) {
-        const kataF1 = new Set(faktaUtama.kataMateri);
-        for (let i = 1; i < skorList.length; i++) {
-            const kandidat = skorList[i];
-            const irisan = kandidat.kataMateri.filter(x => kataF1.has(x));
-            if (irisan.length >= 1 && kandidat.skor >= (faktaUtama.skor * 0.40)) {
-                faktaTerpilih.push(kandidat);
-                break;
+            if (skorTotal > skorTertinggi) {
+                skorTertinggi = skorTotal;
+                blokTerbaik = blok;
             }
         }
     }
 
-    return { fakta: faktaTerpilih, subjek: subjekAktif };
+    // Batas minimum agar tidak sembarangan mengeluarkan dadar gulung
+    if (skorTertinggi >= 8) {
+        return blokTerbaik;
+    }
+    return null;
 }
 
-function ambilAnalogi(kataMateri) {
-    for (const km of kataMateri) {
-        for (const [kunci, contoh] of Object.entries(BANK_CONTOH)) {
-            if (mirip(km, kunci) >= 0.75 || km.includes(kunci)) {
-                return contoh;
-            }
-        }
-    }
-    return "mekanismenya bekerja selaras dengan takaran bahan dan pengendalian panas yang saling melengkapi demi menciptakan hasil akhir yang konsisten";
-}
+// 4. Perangkai Jawaban Alami
+function jawabUser(inputUser) {
+    const sapaan = cekBasaBasi(inputUser);
+    if (sapaan) return sapaan;
 
-function rangkaiJawaban(faktaList, kataM, subjek, pertanyaan) {
-    if (faktaList.length === 0) {
-        const konteks = subjek ? ` mengenai **${subjek}**` : "";
-        return `Halo! Terkait pertanyaan kamu, setelah aku telusuri seluruh catatan materi dan resep yang ada, informasi spesifik${konteks} tentang '${pertanyaan}' jujur belum tercatat di data lokal nih.\n\nTapi santai, kamu bisa menambahkannya ke file .txt kapan saja ya. Semoga jawabannya tepat ya ✌️😅`;
-    }
-
-    let f1 = faktaList[0].kalimat.replace(/\.+$/, '').trim();
-    let f1_k = f1.length > 1 ? f1[0].toLowerCase() + f1.slice(1) : f1;
-    let analogi = ambilAnalogi(kataM);
-
-    let f2Teks = "";
-    if (faktaList.length > 1) {
-        let f2 = faktaList[1].kalimat.replace(/\.+$/, '').trim();
-        let f2_k = f2.length > 1 ? f2[0].toLowerCase() + f2.slice(1) : f2;
-        f2Teks = ` Menariknya lagi, pemahaman ini saling melengkapi dengan kenyataan bahwa ${f2_k}.`;
-    }
-
-    const salamArray = [
-        "Halo! Terkait pertanyaan kamu,",
-        "Halo! Kalau kita kuliti langsung pertanyaan kamu,",
-        "Halo! Menanggapi hal yang kamu tanyakan ini,"
-    ];
-    const introSalam = salamArray[Math.floor(Math.random() * salamArray.length)];
-
-    const p1 = `${introSalam} mari kita bedah duduk perkaranya secara jujur dan to-the-point tanpa muter-muter: faktanya jelas membuktikan bahwa **${f1_k}**.${f2Teks} Kenyataan ini menegaskan bahwa kita tidak perlu bingung oleh proses yang rumit, karena panduan dasarnya memang sudah tertata se-nyata itu.`;
-    const p2 = `Jika kita telusuri secara terstruktur, tahapan ini berlangsung melalui prinsip pengolahan yang sangat runtut dan konsisten. Setiap unsur, takaran, dan perlakuan suhu di dalamnya bekerja saling mengunci demi mempertahankan kualitas serta efisiensi fungsinya, sehingga hasil akhir yang didapatkan merupakan konsekuensi logis dari keteraturan langkah yang dijalankan secara disiplin.`;
-    const p3 = `Biar lebih mudah dan dekat untuk dibayangkan dalam praktik nyata, ${analogi}. Melalui perumpamaan nyata tersebut, kita diajak menyadari betapa pentingnya ketepatan teknik dan kesabaran proses, karena hal itulah yang menjadi kunci keberhasilan jangka panjang.`;
-    const p4 = `Ditinjau dari perspektif yang lebih luas, integrasi antara pemahaman bahan dan langkah teknis ini membuktikan betapa selarasnya setiap unsur dalam menopang tujuannya. Seluruh pemaparan tadi bermuara pada satu pemahaman yang utuh agar kamu mendapatkan gambaran yang jernih dan berhasil mempraktikkannya secara tuntas.\n\nSemoga jawabannya tepat ya ✌️😅`;
-
-    return `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
-}
-
-function responAI(tanya) {
-    const curhat = cekCurhat(tanya);
+    const curhat = cekCurhat(inputUser);
     if (curhat) return curhat;
 
-    const basaBasi = cekBasaBasi(tanya);
-    if (basaBasi) return basaBasi;
+    const materi = cariMateriTepat(inputUser);
+    if (materi) {
+        return `Halo! Berdasarkan penelusuran data materi yang ada pada basis pengetahuan **OoeR Pro**, berikut penjelasan lengkapnya:\n\n${materi}\n\nSemoga penjelasan ini tepat dan membantu ya ✌️😅`;
+    }
 
-    const { fakta, subjek } = cariFaktaOtonom(tanya);
-    const kataM = fakta.length > 0 ? fakta[0].kataMateri : [];
-    return rangkaiJawaban(fakta, kataM, subjek, tanya);
+    return `Halo! Terkait pertanyaan "${inputUser}", informasi spesifik mengenai topik tersebut jujur belum tercatat di dalam basis data materi OoeR Pro saat ini.\n\nKamu bisa menambahkan materinya ke file .txt kapan saja agar saya bisa mempelajarinya. Semoga bermanfaat ya ✌️😅`;
 }
 
 function kirimPesan() {
@@ -321,9 +189,9 @@ function kirimPesan() {
     input.value = "";
 
     setTimeout(() => {
-        const jawaban = responAI(teks);
-        tambahBubble(jawaban, "bot");
-    }, 300);
+        const balasan = jawabUser(teks);
+        tambahBubble(balasan, "bot");
+    }, 250);
 }
 
 function tambahBubble(teks, tipe) {
