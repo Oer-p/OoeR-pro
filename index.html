@@ -45,6 +45,7 @@ const NAMA_BOT = "Ooer Pro";
 const PENCIPTA = "Arip Rahman";
 
 let dokumenMateri = [];
+let daftarMenuResep = [];
 let totalDokumen = 0;
 let frekuensiDokumen = {};
 
@@ -67,20 +68,37 @@ function tokenisasi(teks, filterStop = false) {
     return list;
 }
 
-// Muat materi lokal
+// Muat data lokal & ekstrak daftar resep khusus
 async function muatMateriOtonom() {
-    const daftarFile = ["materi.txt", "resep.txt"];
     let teksGabung = "";
     
-    for (const file of daftarFile) {
-        try {
-            const res = await fetch(file);
-            if (res.ok) {
-                const isi = await res.text();
-                teksGabung += "\n" + isi;
-            }
-        } catch (e) {}
-    }
+    try {
+        const resResep = await fetch("resep.txt");
+        if (resResep.ok) {
+            const txtResep = await resResep.text();
+            teksGabung += "\n" + txtResep;
+            
+            // Ambil daftar resep bersih (abaikan baris 'Jika...')
+            const barisResep = txtResep.split(/\n+/);
+            daftarMenuResep = [];
+            barisResep.forEach(b => {
+                const s = b.trim();
+                if (s.length > 10 && !s.toLowerCase().startsWith("jika ")) {
+                    // Ambil nama masakannya
+                    const nama = s.split(/( dibuat| menggunakan| dimasak| direbus| dibakar| menumis| menggabungkan| membalut| harus| menyajikan| dilelehkan| dipanggang)/i)[0].trim();
+                    daftarMenuResep.push(nama);
+                }
+            });
+        }
+    } catch (e) {}
+
+    try {
+        const resMateri = await fetch("materi.txt");
+        if (resMateri.ok) {
+            const txtMateri = await resMateri.text();
+            teksGabung += "\n" + txtMateri;
+        }
+    } catch (e) {}
 
     const barisList = teksGabung.split(/\n+/);
     dokumenMateri = [];
@@ -108,7 +126,7 @@ async function muatMateriOtonom() {
 }
 muatMateriOtonom();
 
-// Mesin Pencari Relevansi TF-IDF
+// Mesin Pencari TF-IDF
 function cariFakta(pertanyaan) {
     const kataKunci = tokenisasi(pertanyaan, true);
     if (kataKunci.length === 0 || totalDokumen === 0) return null;
@@ -142,7 +160,20 @@ function cariFakta(pertanyaan) {
     return null;
 }
 
-// 1. Kenali Maksud Pertanyaan (Intent Classifier)
+// 1. Format Daftar 30 Resep
+function buatDaftarResep() {
+    if (daftarMenuResep.length === 0) {
+        return "Halo! Daftar resep sedang disiapkan dari database lokal. Coba beberapa saat lagi ya.";
+    }
+    let hasil = `Halo! Berikut adalah daftar **${daftarMenuResep.length} resep makanan** yang tercatat lengkap di dalam basis data OoeR Pro:\n\n`;
+    daftarMenuResep.forEach((nama, i) => {
+        hasil += `${i + 1}. **${nama}**\n`;
+    });
+    hasil += "\nSilakan tanyakan salah satu resep di atas untuk melihat bahan dan panduan memasaknya secara lengkap ya! ✌️😅";
+    return hasil;
+}
+
+// 2. Deteksi Maksud Pertanyaan
 function deteksiMaksud(teks) {
     const t = teks.toLowerCase();
     if (t.includes("kenapa") || t.includes("mengapa") || t.includes("untuk apa") || t.includes("tujuan") || t.includes("alasan")) {
@@ -151,16 +182,14 @@ function deteksiMaksud(teks) {
     if (t.includes("bagaimana") || t.includes("gimana") || t.includes("cara") || t.includes("langkah") || t.includes("solusi") || t.includes("tips")) {
         return "cara";
     }
-    if (t.includes("apa itu") || t.includes("apa artinya") || t.includes("siapa") || t.includes("definisi")) {
+    if (t.includes("apa itu") || t.includes("apa artinya") || t.includes("definisi")) {
         return "definisi";
     }
     return "umum";
 }
 
-// 2. Rangkum & Rapikan Jawaban
 function rangkumJawaban(fakta, maksud) {
     let pembuka = "Berdasarkan penelusuran data materi yang ada:";
-    
     if (maksud === "alasan") {
         pembuka = "Mengenai alasan, tujuan, serta latar belakang dari hal yang kamu tanyakan:";
     } else if (maksud === "cara") {
@@ -176,12 +205,35 @@ function rangkumJawaban(fakta, maksud) {
 function prosesJawaban(input) {
     const t = input.toLowerCase().trim();
 
-    // Sapaan Ramah
+    // A. Sapaan Ramah
     if (["halo", "hallo", "hai", "hi", "oy", "p", "assalamualaikum"].includes(t)) {
         return "Halo juga! Senang bisa menyapa kamu. Ada materi atau resep apa yang ingin kita bahas tuntas hari ini? Semoga jawabannya tepat ya ✌️😅";
     }
 
-    // Identitas Bot, Asal Usul & Tujuan Dibuat
+    // B. Pertanyaan Bantuan & Kemampuan Bot (Bantu Saya?)
+    if (t.includes("bisa bantu") || t.includes("bantu saya") || t.includes("bisa apa") || 
+        t.includes("tolong bantu") || t.includes("bisa membantu") || t === "bantu" || t === "bantu saya ?") {
+        return "Tentu saja! Saya siap membantu kamu sepenuhnya. Saya bisa menyajikan informasi seputar 30 resep masakan, tips dapur, fakta sains, realitas sosial, maupun keuangan berdasarkan catatan lokal OoeR Pro.\n\nApa topik yang ingin kamu tanyakan hari ini? ✌️😅";
+    }
+
+    // C. Pembeda Diri vs Pencipta (Apakah kamu Arip Rahman?)
+    if ((t.includes("kamu") || t.includes("kamu ini")) && (t.includes("arip") || t.includes("arip rahman")) && 
+        (t.includes("apakah") || t.includes("adalah") || t.includes("bukan") || t.endsWith("?"))) {
+        return `Bukan, saya adalah **${NAMA_BOT}**, model kecerdasan buatan mandiri 0 MB yang dirancang dan diciptakan oleh **${PENCIPTA}**.\n\nArip Rahman adalah pencipta dan pengembang utama saya, sedangkan saya adalah asisten digital buatannya! ✌️😎`;
+    }
+
+    // D. Permintaan Daftar 30 Resep Makanan
+    if ((t.includes("sebutkan") || t.includes("daftar") || t.includes("ada apa") || t.includes("list") || t.includes("apa saja") || t.includes("berapa")) && 
+        (t.includes("resep") || t.includes("makanan") || t.includes("masakan") || t.includes("menu"))) {
+        return buatDaftarResep();
+    }
+
+    // E. Profil Khusus Arip Rahman
+    if (t.includes("siapa arip") || t.includes("siapa arip rahman") || t.includes("profil arip")) {
+        return `**Arip Rahman** adalah pengembang independen yang menciptakan OoeR AI Pro secara mandiri melalui lingkungan terminal Termux. Dalam kehidupan sosialnya, Arip dikenal memiliki lingkaran pertemanan yang solid dan saling tolong-menolong bersama rekan-rekannya seperti Samsul, Bey, Ubed, Ikbal, Mang Alfi, Dokek, dan Gipari Adizkiri. ✌️😎`;
+    }
+
+    // F. Identitas Bot & Asal Usul
     if (t.includes("kamu siapa") || t.includes("siapa kamu") || t.includes("nama kamu") || 
         t.includes("pembuat") || t.includes("pencipta") || t.includes("dibuat") || t.includes("di buat") ||
         t.includes("bikin kamu") || t.includes("tujuan kamu")) {
@@ -193,23 +245,23 @@ function prosesJawaban(input) {
         return `Halo! Saya adalah **${NAMA_BOT}**, model kecerdasan buatan mandiri 0 MB yang dirancang dan dikembangkan langsung oleh **${PENCIPTA}** melalui terminal Termux. Saya siap membantu menyajikan informasi dari catatan materi lokal. Semoga jawabannya tepat ya ✌️😅`;
     }
 
-    // Curhat & Motivasi
+    // G. Curhat & Motivasi
     if (["capek", "lelah", "gagal", "ekonomi", "duit", "uang", "stres"].some(k => t.includes(k))) {
         return "Tarik napas dalam-dalam dulu kawan... Tekanan hidup dan lelah itu nyata, tapi fase ini bukan akhir dari perjalananmu. Istirahatkan pikiran malam ini, besok kita tata langkah lagi. Kamu hebat sudah bertahan sejauh ini! Tetap semangat ya ✌️😅";
     }
 
-    // Pencarian Fakta & Merangkum
+    // H. Mesin Pencarian Fakta TF-IDF
     const fakta = cariFakta(input);
     if (fakta) {
         const maksud = deteksiMaksud(input);
         return rangkumJawaban(fakta, maksud);
     }
 
-    // Jawaban Jujur
+    // I. Jawaban Jujur
     return `Halo! Terkait pertanyaan "${input}", informasi spesifik mengenai hal tersebut belum tercatat di dalam basis data materi OoeR Pro saat ini.\n\nKamu bisa menambahkan catatan materi baru ke file teks kapan saja agar saya bisa memahaminya. Semoga bisa dimaklumi ya ✌️😅`;
 }
 
-// Efek Mengetik Modern (Typewriter Effect)
+// Efek Mengetik
 let sedangMengetik = false;
 
 function ketikTeks(elemen, teksLengkap, selesaiCallback) {
@@ -227,7 +279,7 @@ function ketikTeks(elemen, teksLengkap, selesaiCallback) {
             sedangMengetik = false;
             if (selesaiCallback) selesaiCallback();
         }
-    }, 12); // Kecepatan ketik (12ms per karakter)
+    }, 10);
 }
 
 function kirimPesan() {
@@ -241,7 +293,6 @@ function kirimPesan() {
     input.value = "";
     sedangMengetik = true;
 
-    // Tampilkan animasi status berpikir (Loading)
     const box = document.getElementById("chat-box");
     const divLoading = document.createElement("div");
     divLoading.className = "msg bot thinking";
@@ -250,7 +301,6 @@ function kirimPesan() {
     box.appendChild(divLoading);
     box.scrollTop = box.scrollHeight;
 
-    // Jeda berpikir realistis (700 milidetik seperti AI modern)
     setTimeout(() => {
         const jawaban = prosesJawaban(teks);
         divLoading.remove();
@@ -260,7 +310,7 @@ function kirimPesan() {
         box.appendChild(divBot);
 
         ketikTeks(divBot, jawaban, () => {});
-    }, 700);
+    }, 600);
 }
 
 function tambahBubble(teks, tipe) {
