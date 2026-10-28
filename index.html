@@ -3,83 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Zharful AI - Pesantren Assistant</title>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Zharful AI - Pesantren</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-  html, body {
+  body { 
     background: #06110c; 
     color: #e6ede9; 
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  .chat-app { 
-    width: 100%; 
-    max-width: 500px; 
-    margin: 0 auto;
     min-height: 100vh;
-    display: flex; 
-    flex-direction: column; 
-    position: relative;
-    background: #06110c; 
+    display: flex;
+    justify-content: center;
   }
-
-  /* Topbar Minimalis */
-  .topbar { 
+  .app {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #06110c;
+    position: relative;
+  }
+  /* Header */
+  .header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #143324;
     position: sticky;
     top: 0;
-    z-index: 50;
     background: #06110c;
-    padding: 14px 20px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    border-bottom: 1px solid rgba(27, 71, 51, 0.4);
+    z-index: 50;
   }
-  .logo-area { display: flex; align-items: center; gap: 10px; }
-  .avatar { font-size: 22px; }
-  .title h1 { font-size: 15px; font-weight: 700; color: #f4eedb; }
-  .title p { font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px; }
-  .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 6px #4ade80; }
-  .arabic-badge { font-family: 'Amiri', serif; font-size: 16px; color: #d4af37; background: #0c2017; padding: 3px 12px; border-radius: 20px; border: 1px solid #1c4533; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand h1 { font-size: 16px; font-weight: 700; color: #f4eedb; }
+  .status { font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px; }
+  .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; }
+  .arabic { font-family: 'Amiri', serif; font-size: 17px; color: #d4af37; background: #0c2017; padding: 2px 12px; border-radius: 20px; border: 1px solid #1c4533; }
 
-  /* Area Teks / Chat (Rata Tengah, Tanpa Kotak) */
-  .chat-box { 
-    flex: 1; 
-    padding: 24px 20px 120px 20px; /* Padding bawah 120px agar teks tidak ketutupan tombol chat */
-    display: flex; 
-    flex-direction: column; 
-    gap: 26px; 
+  /* Chat List */
+  .chat-container {
+    flex: 1;
+    padding: 24px 18px 120px; /* Jarak bawah agar tidak tertutup tombol chat */
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
   }
-
-  /* Teks Pertanyaan User */
-  .user-text-wrap {
+  .user-bubble {
     text-align: center;
-    background: rgba(27, 71, 51, 0.35);
-    padding: 10px 18px;
-    border-radius: 25px;
+    background: #11291d;
+    color: #8be3b1;
+    padding: 10px 16px;
+    border-radius: 20px;
     margin: 0 auto;
-    max-width: 90%;
-    color: #a3c9b7;
     font-size: 13.5px;
-    border: 1px solid rgba(74, 222, 128, 0.2);
+    max-width: 85%;
+    border: 1px solid #1d4833;
   }
-
-  /* Teks Jawaban AI (Polos, Rata Tengah) */
-  .ai-text-wrap {
+  .ai-bubble {
     text-align: center;
-    margin: 0 auto;
     width: 100%;
-    max-width: 95%;
+    margin: 0 auto;
   }
-  .ai-body {
+  .ai-text {
     font-size: 15.5px;
     line-height: 1.8;
     color: #f1f5f3;
   }
-  .arabic-text {
+  .arab-text {
     font-family: 'Amiri', serif;
     font-size: 21px;
     color: #ffd977;
@@ -87,46 +78,31 @@
     line-height: 2;
     direction: rtl;
   }
-  .badge-rujukan {
+  .ref {
     display: inline-block;
-    color: #8da498;
-    font-size: 12px;
-    margin-top: 10px;
-    background: #0a1b13;
-    padding: 4px 14px;
+    color: #8ca397;
+    font-size: 11.5px;
+    background: #091710;
+    padding: 4px 12px;
     border-radius: 12px;
-    border: 1px solid #163828;
-  }
-
-  /* Tombol Kotak Kecil Salin */
-  .copy-row {
-    display: flex;
-    justify-content: center;
-    margin-top: 12px;
+    margin-top: 8px;
+    border: 1px solid #183827;
   }
   .btn-copy {
-    background: #0e261c;
-    border: 1px solid #1e4d37;
-    color: #c0d8cc;
-    padding: 7px 14px;
+    margin-top: 10px;
+    background: #0d2419;
+    border: 1px solid #1e4d35;
+    color: #c1dad0;
+    padding: 6px 14px;
     border-radius: 8px;
     font-size: 11.5px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: 0.2s;
-  }
-  .btn-copy:active {
-    transform: scale(0.93);
-    background: #1b4733;
-    color: #fff;
   }
 
-  /* KOLOM CHAT MELAYANG (PASTI MUNCUL DI LAYAR HP) */
-  .input-container {
+  /* Input Chat (PASTI MELAYANG DI TENGAH BAWAH) */
+  .input-wrap {
     position: fixed;
-    bottom: 18px;
+    bottom: 20px;
     left: 0;
     right: 0;
     display: flex;
@@ -143,7 +119,7 @@
     border: 1.5px solid #286348;
     border-radius: 35px;
     padding: 6px 8px 6px 18px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.8);
   }
   .input-bar input {
     flex: 1;
@@ -153,9 +129,7 @@
     font-size: 14px;
     outline: none;
   }
-  .input-bar input::placeholder {
-    color: #6d8a7c;
-  }
+  .input-bar input::placeholder { color: #6d8a7c; text-align: center; }
   .btn-send {
     width: 42px;
     height: 42px;
@@ -165,129 +139,96 @@
     color: #06110c;
     font-size: 16px;
     cursor: pointer;
+    font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    box-shadow: 0 0 10px rgba(212,175,55,0.4);
   }
-  .btn-send:active { transform: scale(0.9); }
 </style>
 </head>
 <body>
 
-<div class="chat-app">
-  <div class="topbar">
-    <div class="logo-area">
-      <div class="avatar">🕌</div>
-      <div class="title">
-        <h1>ZHARFUL – AI</h1>
-        <p><span class="dot"></span> Status: Manshub (Aktif)</p>
+<div class="app">
+  <div class="header">
+    <div class="brand">
+      <span style="font-size:22px;">🕌</span>
+      <div>
+        <h1>ZHARFUL - AI</h1>
+        <div class="status"><span class="dot"></span> Status: Manshub (Aktif)</div>
       </div>
     </div>
-    <div class="arabic-badge">ظَرْفُ الذَّكَاءِ</div>
+    <div class="arabic">ظَرْفُ الذَّكَاءِ</div>
   </div>
 
-  <div class="chat-box" id="chatBox">
-    <div class="ai-text-wrap" id="msg-0">
-      <div class="ai-body">
+  <div class="chat-container" id="box">
+    <div class="ai-bubble" id="item-0">
+      <div class="ai-text">
         Assalamu'alaikum warahmatullah.<br><br>
-        Saya <b>Zharful–AI</b>, wadah kecerdasan untuk mudzakarah ilmu Nahwu, Shorof, dan Fiqih Pesantren.<br><br>
-        Silakan ketik pertanyaan di kolom chat bawah untuk mulai membahas kitab.
+        Saya <b>Zharful–AI</b>, wadah mudzakarah ilmu Nahwu, Shorof, dan Fiqih Pesantren.<br><br>
+        Silakan ketik pertanyaan di kolom chat bawah.
       </div>
-      <div class="badge-rujukan">📖 Rujukan: Turats Ilmiyyah Pesantren</div>
-      <div class="copy-row">
-        <button class="btn-copy" onclick="salinTeks('msg-0', this)">
-          📋 Salin Jawaban
-        </button>
-      </div>
+      <div class="ref">📖 Rujukan: Turats Ilmiyyah Pesantren</div><br>
+      <button class="btn-copy" onclick="copyJawaban('item-0', this)">📋 Salin Jawaban</button>
     </div>
   </div>
 
-  <!-- Bar Input Chat yang Melayang di Tengah Bawah -->
-  <div class="input-container">
+  <div class="input-wrap">
     <div class="input-bar">
-      <input type="text" id="userInput" placeholder="Tanya bab nahwu / fiqih di sini...">
-      <button class="btn-send" onclick="kirimPesan()">➤</button>
+      <input type="text" id="pesan" placeholder="Tanyakan seputar nahwu / fiqih...">
+      <button class="btn-send" onclick="kirim()">➤</button>
     </div>
   </div>
 </div>
 
 <script>
-let msgCount = 1;
+let count = 1;
 
-function salinTeks(id, btn) {
-  const el = document.getElementById(id);
-  const bodyText = el.querySelector('.ai-body').innerText;
-  navigator.clipboard.writeText(bodyText).then(() => {
-    const originalText = btn.innerHTML;
-    btn.innerHTML = "✅ Tersalin!";
-    btn.style.borderColor = "#4ade80";
-    btn.style.color = "#4ade80";
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.style.borderColor = "#1e4d37";
-      btn.style.color = "#c0d8cc";
-    }, 1800);
+function copyJawaban(id, btn) {
+  const text = document.getElementById(id).querySelector('.ai-text').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerText = "✅ Tersalin!";
+    setTimeout(() => { btn.innerText = "📋 Salin Jawaban"; }, 1500);
   });
 }
 
-function kirimPesan() {
-  const input = document.getElementById('userInput');
-  const chatBox = document.getElementById('chatBox');
-  const text = input.value.trim();
-  if(!text) return;
+function kirim() {
+  const inp = document.getElementById('pesan');
+  const val = inp.value.trim();
+  if(!val) return;
 
-  chatBox.innerHTML += `
-    <div class="user-text-wrap">
-      "${text}"
-    </div>
-  `;
-  input.value = '';
+  const box = document.getElementById('box');
+  box.innerHTML += `<div class="user-bubble">"${val}"</div>`;
+  inp.value = '';
   window.scrollTo(0, document.body.scrollHeight);
 
   setTimeout(() => {
-    let jawaban = "Mudzakarah untuk bab tersebut sedang ditelaah dari rujukan kitab-kitab turats.";
+    let text = "Mudzakarah untuk bab tersebut sedang ditelaah dari kitab-kitab turats.";
     let arab = "";
-    let rujukan = "Kajian Turats";
+    let ref = "Kajian Turats";
 
-    const q = text.toLowerCase();
-    if(q.includes('dzorof') || q.includes('zhorof') || q.includes('dhorof')) {
-      jawaban = "Dzorof adalah isim yang dibaca nashob dengan mentaqdirkan makna 'fī' (di dalam/pada). Dzorof terbagi dua: Dzorof Zaman (waktu) dan Dzorof Makan (tempat).";
+    const q = val.toLowerCase();
+    if(q.includes('dzorof') || q.includes('zhorof')) {
+      text = "Dzorof adalah isim yang dibaca nashob dengan mentaqdirkan makna 'fī' (di dalam/pada). Dzorof terbagi dua: Dzorof Zaman (waktu) dan Dzorof Makan (tempat).";
       arab = "ظَرْفُ الزَّمَانِ هُوَ اسْمُ الزَّمَانِ الْمَنْصُوبُ بِتَقْدِيرِ فِي";
-      rujukan = "Matan Al-Ajurrumiyyah - Bab Al-Maf'ul Fih";
-    } else if(q.includes('kalam') || q.includes('kalimat')) {
-      jawaban = "Kalam menurut ulama Nahwu adalah lafadz yang tersusun, berfaedah, dan disengaja dengan bahasa Arab. Bagiannya ada 3: Isim, Fi'il, dan Huruf yang bermakna.";
+      ref = "Matan Al-Ajurrumiyyah";
+    } else if(q.includes('kalam')) {
+      text = "Kalam adalah lafadz yang tersusun, memberi faedah, dan disengaja dengan bahasa Arab. Bagiannya ada 3: Isim, Fi'il, dan Huruf.";
       arab = "الكَلَامُ هُوَ اللَّفْظُ المُرَكَّبُ المُفِيدُ بِالوُضْعِ";
-      rujukan = "Matan Al-Ajurrumiyyah - Bab Al-Kalam";
-    } else if(q.includes('wudhu') || q.includes('fiqih')) {
-      jawaban = "Fardhu wudhu menurut madzhab Syafi'i ada 6 perkara: Niat, membasuh muka, membasuh kedua tangan sampai siku, mengusap sebagian kepala, membasuh kedua kaki sampai mata kaki, dan tertib.";
-      arab = "فُرُوضُ الْوُضُوءِ سِتَّةُ أَشْيَاءَ";
-      rujukan = "Safinatun Naja - Bab Fardhu Wudhu";
+      ref = "Matan Al-Ajurrumiyyah";
     }
 
-    const currentId = "msg-" + msgCount++;
-    let html = `
-      <div class="ai-text-wrap" id="${currentId}">
-        <div class="ai-body">${jawaban}</div>`;
-    if(arab) html += `<div class="arabic-text">${arab}</div>`;
-    html += `
-        <div class="badge-rujukan">📖 Rujukan: ${rujukan}</div>
-        <div class="copy-row">
-          <button class="btn-copy" onclick="salinTeks('${currentId}', this)">
-            📋 Salin Jawaban
-          </button>
-        </div>
-      </div>
-    `;
-
-    chatBox.innerHTML += html;
+    const currentId = "item-" + count++;
+    let out = `<div class="ai-bubble" id="${currentId}"><div class="ai-text">${text}</div>`;
+    if(arab) out += `<div class="arab-text">${arab}</div>`;
+    out += `<div class="ref">📖 Rujukan: ${ref}</div><br><button class="btn-copy" onclick="copyJawaban('${currentId}', this)">📋 Salin Jawaban</button></div>`;
+    
+    box.innerHTML += out;
     window.scrollTo(0, document.body.scrollHeight);
-  }, 500);
+  }, 400);
 }
 
-document.getElementById('userInput').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') kirimPesan();
+document.getElementById('pesan').addEventListener('keypress', function(e) {
+  if(e.key === 'Enter') kirim();
 });
 </script>
 </body>
