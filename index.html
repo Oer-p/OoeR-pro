@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Zharful AI - Pesantren</title>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
   body { 
@@ -25,7 +25,7 @@
   }
   /* Header */
   .header {
-    padding: 16px 20px;
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -36,29 +36,57 @@
     z-index: 50;
   }
   .brand { display: flex; align-items: center; gap: 10px; }
-  .brand h1 { font-size: 16px; font-weight: 700; color: #f4eedb; }
+  .brand h1 { font-size: 15px; font-weight: 700; color: #f4eedb; }
   .status { font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px; }
-  .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; }
+  .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 6px #4ade80; }
   .arabic { font-family: 'Amiri', serif; font-size: 17px; color: #d4af37; background: #0c2017; padding: 2px 12px; border-radius: 20px; border: 1px solid #1c4533; }
 
-  /* Chat List */
+  /* Chat Container */
   .chat-container {
     flex: 1;
-    padding: 24px 18px 120px; /* Jarak bawah agar tidak tertutup tombol chat */
+    padding: 24px 18px 120px;
     display: flex;
     flex-direction: column;
     gap: 26px;
   }
+
+  /* Sapaan Pembuka yang Bersih & Sopan */
+  .welcome-wrap {
+    text-align: center;
+    margin: 10px auto 16px;
+    width: 100%;
+    max-width: 95%;
+  }
+  .salam-arab {
+    font-family: 'Amiri', serif;
+    font-size: 22px;
+    color: #d4af37;
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+  .bismillah-arab {
+    font-family: 'Amiri', serif;
+    font-size: 20px;
+    color: #72d99d;
+    margin: 10px 0;
+  }
+  .welcome-text {
+    font-size: 14.5px;
+    line-height: 1.8;
+    color: #edf3f0;
+  }
+
+  /* Chat Bubble User & AI */
   .user-bubble {
     text-align: center;
-    background: #11291d;
-    color: #8be3b1;
-    padding: 10px 16px;
-    border-radius: 20px;
+    background: rgba(27, 71, 51, 0.4);
+    color: #9fe2bd;
+    padding: 10px 18px;
+    border-radius: 25px;
     margin: 0 auto;
     font-size: 13.5px;
     max-width: 85%;
-    border: 1px solid #1d4833;
+    border: 1px solid #24583e;
   }
   .ai-bubble {
     text-align: center;
@@ -66,7 +94,7 @@
     margin: 0 auto;
   }
   .ai-text {
-    font-size: 15.5px;
+    font-size: 15px;
     line-height: 1.8;
     color: #f1f5f3;
   }
@@ -83,23 +111,25 @@
     color: #8ca397;
     font-size: 11.5px;
     background: #091710;
-    padding: 4px 12px;
+    padding: 4px 14px;
     border-radius: 12px;
-    margin-top: 8px;
+    margin-top: 10px;
     border: 1px solid #183827;
   }
   .btn-copy {
     margin-top: 10px;
-    background: #0d2419;
-    border: 1px solid #1e4d35;
+    background: #0e261b;
+    border: 1px solid #1f4f37;
     color: #c1dad0;
     padding: 6px 14px;
     border-radius: 8px;
     font-size: 11.5px;
     cursor: pointer;
+    transition: 0.2s;
   }
+  .btn-copy:active { transform: scale(0.93); background: #1b4733; color: #fff; }
 
-  /* Input Chat (PASTI MELAYANG DI TENGAH BAWAH) */
+  /* Input Chat Melayang */
   .input-wrap {
     position: fixed;
     bottom: 20px;
@@ -161,14 +191,15 @@
   </div>
 
   <div class="chat-container" id="box">
-    <div class="ai-bubble" id="item-0">
-      <div class="ai-text">
-        Assalamu'alaikum warahmatullah.<br><br>
-        Saya <b>Zharful–AI</b>, wadah mudzakarah ilmu Nahwu, Shorof, dan Fiqih Pesantren.<br><br>
-        Silakan ketik pertanyaan di kolom chat bawah.
+    <!-- Sapaan Pembuka Sopan & Santun -->
+    <div class="welcome-wrap">
+      <div class="salam-arab">السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</div>
+      <div class="welcome-text">
+        <b>Assalamu'alaikum warahmatullahi wabarakatuh.</b><br>
+        Selamat datang di <b>Zharful–AI</b>, wadah mudzakarah ilmu Nahwu, Shorof, dan Fiqih Pesantren.<br>
+        <div class="bismillah-arab">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+        Dengan membaca bismillah, semoga Zharful bisa membantu menjawab pertanyaan Anda dengan benar, tepat, dan penuh keberkahan ilmu.
       </div>
-      <div class="ref">📖 Rujukan: Turats Ilmiyyah Pesantren</div><br>
-      <button class="btn-copy" onclick="copyJawaban('item-0', this)">📋 Salin Jawaban</button>
     </div>
   </div>
 
@@ -202,19 +233,27 @@ function kirim() {
   window.scrollTo(0, document.body.scrollHeight);
 
   setTimeout(() => {
-    let text = "Mudzakarah untuk bab tersebut sedang ditelaah dari kitab-kitab turats.";
+    let text = "Mudzakarah untuk bab tersebut sedang ditelaah lebih dalam dari rujukan kitab-kitab turats.";
     let arab = "";
-    let ref = "Kajian Turats";
+    let ref = "Kajian Turats Pesantren";
 
     const q = val.toLowerCase();
-    if(q.includes('dzorof') || q.includes('zhorof')) {
+    if(q.includes('isim')) {
+      text = "Isim adalah kata yang menunjukkan arti pada dirinya sendiri dan tidak disertai dengan waktu. Ciri-ciri isim: dapat menerima i'rab jer/khofadh, tanwin, kemasukan alif lam (ال), dan kemasukan huruf jer.";
+      arab = "فَالِاسْمُ يُعْرَفُ: بِالْخَفْضِ، وَالتَّنْوِينِ، وَدُخُولِ الْأَلِفِ وَاللَّامِ";
+      ref = "Matan Al-Ajurrumiyyah - Bab Ma'rifati 'Alamatil I'rab";
+    } else if(q.includes('fi\'il') || q.includes('fiil')) {
+      text = "Fi'il adalah kata yang menunjukkan makna pada dirinya sendiri dan terikat dengan salah satu dari tiga waktu (madhi, mudhari', amr). Ciri-cirinya: kemasukan Qad, Sin, Saufa, dan Ta' Ta'nits Sakinah.";
+      arab = "وَالْفِعْلُ يُعْرَفُ بِقَدْ، وَالسِّينِ، وَسَوْفَ، وَتَاءِ التَّأْنِيثِ السَّاكِنَةِ";
+      ref = "Matan Al-Ajurrumiyyah - Bab 'Alamatul Fi'il";
+    } else if(q.includes('kalam')) {
+      text = "Kalam adalah lafadz yang tersusun, memberi faedah, dan disengaja dengan bahasa Arab. Bagiannya ada 3: Isim, Fi'il, dan Huruf yang bermakna.";
+      arab = "الكَلَامُ هُوَ اللَّفْظُ المُرَكَّبُ المُفِيدُ بِالوُضْعِ";
+      ref = "Matan Al-Ajurrumiyyah - Bab Al-Kalam";
+    } else if(q.includes('dzorof') || q.includes('zhorof') || q.includes('dhorof')) {
       text = "Dzorof adalah isim yang dibaca nashob dengan mentaqdirkan makna 'fī' (di dalam/pada). Dzorof terbagi dua: Dzorof Zaman (waktu) dan Dzorof Makan (tempat).";
       arab = "ظَرْفُ الزَّمَانِ هُوَ اسْمُ الزَّمَانِ الْمَنْصُوبُ بِتَقْدِيرِ فِي";
-      ref = "Matan Al-Ajurrumiyyah";
-    } else if(q.includes('kalam')) {
-      text = "Kalam adalah lafadz yang tersusun, memberi faedah, dan disengaja dengan bahasa Arab. Bagiannya ada 3: Isim, Fi'il, dan Huruf.";
-      arab = "الكَلَامُ هُوَ اللَّفْظُ المُرَكَّبُ المُفِيدُ بِالوُضْعِ";
-      ref = "Matan Al-Ajurrumiyyah";
+      ref = "Matan Al-Ajurrumiyyah - Bab Al-Maf'ul Fih";
     }
 
     const currentId = "item-" + count++;
