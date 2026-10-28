@@ -7,25 +7,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-  body { 
+  html, body {
     background: #06110c; 
     color: #e6ede9; 
-    display: flex; 
-    justify-content: center; 
-    height: 100dvh; 
-    overflow: hidden; 
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
   .chat-app { 
     width: 100%; 
     max-width: 500px; 
-    height: 100dvh; 
+    margin: 0 auto;
+    min-height: 100vh;
     display: flex; 
     flex-direction: column; 
+    position: relative;
     background: #06110c; 
   }
 
   /* Topbar Minimalis */
   .topbar { 
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: #06110c;
     padding: 14px 20px; 
     display: flex; 
     align-items: center; 
@@ -34,34 +40,34 @@
   }
   .logo-area { display: flex; align-items: center; gap: 10px; }
   .avatar { font-size: 22px; }
-  .title h1 { font-size: 15px; font-weight: 700; color: #f4eedb; letter-spacing: 0.5px; }
+  .title h1 { font-size: 15px; font-weight: 700; color: #f4eedb; }
   .title p { font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px; }
   .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 6px #4ade80; }
   .arabic-badge { font-family: 'Amiri', serif; font-size: 16px; color: #d4af37; background: #0c2017; padding: 3px 12px; border-radius: 20px; border: 1px solid #1c4533; }
 
-  /* Area Teks / Chat (Tengah & Tanpa Kolom) */
+  /* Area Teks / Chat (Rata Tengah, Tanpa Kotak) */
   .chat-box { 
     flex: 1; 
-    padding: 24px 20px; 
-    overflow-y: auto; 
+    padding: 24px 20px 120px 20px; /* Padding bawah 120px agar teks tidak ketutupan tombol chat */
     display: flex; 
     flex-direction: column; 
-    gap: 24px; 
+    gap: 26px; 
   }
 
   /* Teks Pertanyaan User */
   .user-text-wrap {
     text-align: center;
-    background: rgba(27, 71, 51, 0.25);
-    padding: 10px 16px;
-    border-radius: 20px;
+    background: rgba(27, 71, 51, 0.35);
+    padding: 10px 18px;
+    border-radius: 25px;
     margin: 0 auto;
     max-width: 90%;
     color: #a3c9b7;
     font-size: 13.5px;
+    border: 1px solid rgba(74, 222, 128, 0.2);
   }
 
-  /* Teks Jawaban AI (Polos, Bersih & Rata Tengah) */
+  /* Teks Jawaban AI (Polos, Rata Tengah) */
   .ai-text-wrap {
     text-align: center;
     margin: 0 auto;
@@ -69,13 +75,13 @@
     max-width: 95%;
   }
   .ai-body {
-    font-size: 15px;
+    font-size: 15.5px;
     line-height: 1.8;
     color: #f1f5f3;
   }
   .arabic-text {
     font-family: 'Amiri', serif;
-    font-size: 20px;
+    font-size: 21px;
     color: #ffd977;
     margin: 12px 0;
     line-height: 2;
@@ -85,26 +91,26 @@
     display: inline-block;
     color: #8da498;
     font-size: 12px;
-    margin-top: 8px;
+    margin-top: 10px;
     background: #0a1b13;
-    padding: 3px 12px;
+    padding: 4px 14px;
     border-radius: 12px;
     border: 1px solid #163828;
   }
 
-  /* Tombol Kotak Kecil Copy */
+  /* Tombol Kotak Kecil Salin */
   .copy-row {
     display: flex;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 12px;
   }
   .btn-copy {
     background: #0e261c;
     border: 1px solid #1e4d37;
     color: #c0d8cc;
-    padding: 6px 12px;
+    padding: 7px 14px;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 11.5px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -117,56 +123,60 @@
     color: #fff;
   }
 
-  /* Bar Input Chat di Tengah */
+  /* KOLOM CHAT MELAYANG (PASTI MUNCUL DI LAYAR HP) */
   .input-container {
-    padding: 14px 18px 20px;
+    position: fixed;
+    bottom: 18px;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: center;
-    background: #06110c;
+    padding: 0 16px;
+    z-index: 999;
   }
   .input-bar {
     width: 100%;
     max-width: 440px;
     display: flex;
     align-items: center;
-    background: #0d2218;
-    border: 1px solid #1f4f38;
-    border-radius: 30px;
-    padding: 4px 6px 4px 18px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    background: #0d241a;
+    border: 1.5px solid #286348;
+    border-radius: 35px;
+    padding: 6px 8px 6px 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.7);
   }
   .input-bar input {
     flex: 1;
     background: transparent;
     border: none;
     color: #fff;
-    font-size: 13.5px;
+    font-size: 14px;
     outline: none;
-    text-align: left;
   }
   .input-bar input::placeholder {
-    color: #668274;
-    text-align: center;
+    color: #6d8a7c;
   }
   .btn-send {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background: #d4af37;
     border: none;
     color: #06110c;
-    font-size: 15px;
+    font-size: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    box-shadow: 0 0 10px rgba(212,175,55,0.4);
   }
+  .btn-send:active { transform: scale(0.9); }
 </style>
 </head>
 <body>
+
 <div class="chat-app">
-  
   <div class="topbar">
     <div class="logo-area">
       <div class="avatar">🕌</div>
@@ -183,7 +193,7 @@
       <div class="ai-body">
         Assalamu'alaikum warahmatullah.<br><br>
         Saya <b>Zharful–AI</b>, wadah kecerdasan untuk mudzakarah ilmu Nahwu, Shorof, dan Fiqih Pesantren.<br><br>
-        Silakan tanyakan kaidah atau masalah kitab yang ingin dibahas.
+        Silakan ketik pertanyaan di kolom chat bawah untuk mulai membahas kitab.
       </div>
       <div class="badge-rujukan">📖 Rujukan: Turats Ilmiyyah Pesantren</div>
       <div class="copy-row">
@@ -194,13 +204,13 @@
     </div>
   </div>
 
+  <!-- Bar Input Chat yang Melayang di Tengah Bawah -->
   <div class="input-container">
     <div class="input-bar">
-      <input type="text" id="userInput" placeholder="Tanyakan seputar nahwu / kitab...">
+      <input type="text" id="userInput" placeholder="Tanya bab nahwu / fiqih di sini...">
       <button class="btn-send" onclick="kirimPesan()">➤</button>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -234,10 +244,10 @@ function kirimPesan() {
     </div>
   `;
   input.value = '';
-  chatBox.scrollTop = chatBox.scrollHeight;
+  window.scrollTo(0, document.body.scrollHeight);
 
   setTimeout(() => {
-    let jawaban = "Mudzakarah untuk bab tersebut sedang ditelaah dari rujukan kitab-kitab induk turats.";
+    let jawaban = "Mudzakarah untuk bab tersebut sedang ditelaah dari rujukan kitab-kitab turats.";
     let arab = "";
     let rujukan = "Kajian Turats";
 
@@ -247,11 +257,11 @@ function kirimPesan() {
       arab = "ظَرْفُ الزَّمَانِ هُوَ اسْمُ الزَّمَانِ الْمَنْصُوبُ بِتَقْدِيرِ فِي";
       rujukan = "Matan Al-Ajurrumiyyah - Bab Al-Maf'ul Fih";
     } else if(q.includes('kalam') || q.includes('kalimat')) {
-      jawaban = "Kalam menurut ulama Nahwu adalah lafadz yang tersusun, berfaedah, dan disengaja dengan bahasa Arab. Bagiannya ada tiga: Isim, Fi'il, dan Huruf yang bermakna.";
+      jawaban = "Kalam menurut ulama Nahwu adalah lafadz yang tersusun, berfaedah, dan disengaja dengan bahasa Arab. Bagiannya ada 3: Isim, Fi'il, dan Huruf yang bermakna.";
       arab = "الكَلَامُ هُوَ اللَّفْظُ المُرَكَّبُ المُفِيدُ بِالوُضْعِ";
       rujukan = "Matan Al-Ajurrumiyyah - Bab Al-Kalam";
     } else if(q.includes('wudhu') || q.includes('fiqih')) {
-      jawaban = "Fardhu wudhu menurut madzhab Syafi'i ada 6 perkara: Niat, membasuh muka, membasuh tangan sampai siku, mengusap sebagian kepala, membasuh kaki sampai mata kaki, dan tertib.";
+      jawaban = "Fardhu wudhu menurut madzhab Syafi'i ada 6 perkara: Niat, membasuh muka, membasuh kedua tangan sampai siku, mengusap sebagian kepala, membasuh kedua kaki sampai mata kaki, dan tertib.";
       arab = "فُرُوضُ الْوُضُوءِ سِتَّةُ أَشْيَاءَ";
       rujukan = "Safinatun Naja - Bab Fardhu Wudhu";
     }
@@ -272,7 +282,7 @@ function kirimPesan() {
     `;
 
     chatBox.innerHTML += html;
-    chatBox.scrollTop = chatBox.scrollHeight;
+    window.scrollTo(0, document.body.scrollHeight);
   }, 500);
 }
 
