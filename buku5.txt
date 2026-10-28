@@ -1,0 +1,7 @@
+tanya: siapa itu budi? jawab: budi adalah anak rajin yang suka belajar koding dan teknologi.
+tanya: apa makanan kesukaan kucing kecil? jawab: kucing kecil suka makan ikan dan minum susu hangat.
+tanya: berapa satu ditambah satu? jawab: satu ditambah satu hasilnya adalah dua.
+tanya: bagaimana suasana malam jumat? jawab: malam jumat diselimuti kabut tebal yang dingin dan sunyi.
+tanya: apa yang terjadi jika lampu robot berwarna hijau? jawab: jika lampu hijau maka robot berjalan maju.
+tanya: apa yang membuat perut terasa lapar di pagi hari? jawab: aroma nasi goreng hangat buatan ibu yang lezat.
+tanya: siapa yang membuat game robot luar angkasa? jawab: programmer cilik bernama budi.

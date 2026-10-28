@@ -1,0 +1,9 @@
+budi belajar berhitung angka satu sampai sepuluh di sekolah.
+satu ditambah satu hasilnya adalah dua.
+dua ditambah dua hasilnya sama dengan empat.
+komputer sangat cepat dalam menghitung angka matematika.
+jika lampu robot berwarna hijau maka robot berjalan maju.
+jika lampu robot berwarna merah maka robot harus berhenti.
+perintah jika dan maka disebut logika percabangan di dalam koding.
+programmer menggunakan angka dan logika untuk mengendalikan robot pintar.
+budi senang karena robot buatannya semakin pintar berhitung dan patuh pada perintah.
