@@ -25,18 +25,18 @@
 <body>
 
 <header>
-    <h1>⚡ OoeR AI Pro (Hybrid Engine)</h1>
-    <p>Model Mandiri 0 MB + Real-Time Web Search — Karya Arip Rahman</p>
+    <h1>⚡ OoeR AI Pro</h1>
+    <p>Kecerdasan Mandiri — Karya Arip Rahman</p>
 </header>
 
 <div id="chat-box">
     <div class="msg bot">Halo! Saya <b>OoeR AI Pro</b>, kecerdasan buatan mandiri yang dikembangkan langsung oleh <b>Arip Rahman</b> melalui Termux.
 
-Saya menguasai seluruh materi lokal dan 30 resep masakan, serta dilengkapi kemampuan <b>menjelajahi web online secara langsung</b> untuk mencari ilmu pengetahuan baru di internet. Ada yang ingin kamu diskusikan atau tanyakan hari ini? Semoga jawabannya tepat ya ✌️😅</div>
+Saya menguasai seluruh materi lokal dan 30 resep masakan, serta memiliki wawasan luas untuk mendiskusikan sains, sejarah, dan ilmu pengetahuan umum. Ada yang ingin kamu tanyakan hari ini? Semoga jawabannya tepat ya ✌️😅</div>
 </div>
 
 <div id="input-area">
-    <input type="text" id="pesan-input" placeholder="Tanyakan resep masakan, sains, sejarah, tokoh..." autocomplete="off">
+    <input type="text" id="pesan-input" placeholder="Tanyakan apa saja seputar masakan, sains, sejarah..." autocomplete="off">
     <button id="kirim-btn" onclick="kirimPesan()">Kirim</button>
 </div>
 
@@ -70,7 +70,20 @@ function tokenisasi(teks, filterStop = false) {
     return list;
 }
 
-// 1. Muat Database Lokal
+// 1. Ekstraktor Inti Pertanyaan (Bersihkan kata tanya & bumbu)
+function ekstrakSubjekMurni(teks) {
+    let t = teks.toLowerCase()
+        .replace(/^(apa itu|apakah yang dimaksud|apa yang dimaksud|apa arti|apa artinya|arti dari|artinya|apa makna|makna dari|siapa itu|siapakah|sejarah singkat|sejarah|pengertian|definisi|tentang|tolong jelaskan|jelaskan|tahu tentang)/gi, "")
+        .replace(/[^a-z0-9\s]/gi, " ")
+        .trim();
+    
+    // Jika masih ada kata borobudur, utamakan kata spesifik tersebut
+    if (t.includes("borobudur")) return "borobudur";
+    if (t.includes("indonesia")) return "indonesia";
+    return t;
+}
+
+// 2. Muat Database Lokal
 async function muatMateriOtonom() {
     let teksGabung = "";
     
@@ -132,7 +145,7 @@ async function muatMateriOtonom() {
 }
 muatMateriOtonom();
 
-// 2. Mesin Pencari Lokal TF-IDF
+// 3. Mesin Pencari Lokal TF-IDF
 function cariFaktaLokal(pertanyaan) {
     const kataKunci = tokenisasi(pertanyaan, true);
     if (kataKunci.length === 0 || totalDokumen === 0) return null;
@@ -166,31 +179,46 @@ function cariFaktaLokal(pertanyaan) {
     return null;
 }
 
-// 3. Mesin Pencari Online Web (Wikipedia Indonesia API Bebas CORS)
-async function cariWebOnline(pertanyaan) {
-    const kataKunci = tokenisasi(pertanyaan, true).join(" ");
-    if (!kataKunci || kataKunci.length < 2) return null;
+// 4. Mesin Penyelam Pengetahuan Online Cerdas (Dengan Validasi Relevansi)
+async function cariWawasanOnline(subjek) {
+    if (!subjek || subjek.length < 2) return null;
 
     try {
-        const url = `https://id.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(kataKunci)}&gsrlimit=1&prop=extracts&exintro=true&explaintext=true&utf8=&format=json&origin=*`;
-        const res = await fetch(url);
-        if (!res.ok) return null;
+        // Gunakan pencarian OpenSearch untuk menemukan judul topik yang paling tepat
+        const searchUrl = `https://id.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(subjek)}&limit=3&namespace=0&format=json&origin=*`;
+        const resSearch = await fetch(searchUrl);
+        if (!resSearch.ok) return null;
         
-        const data = await res.json();
-        if (data && data.query && data.query.pages) {
-            const pageId = Object.keys(data.query.pages)[0];
-            const page = data.query.pages[pageId];
-            if (page && page.extract && page.extract.length > 25) {
-                // Ambil ringkasan padat
-                let teksRingkas = page.extract.split('\n')[0].trim();
-                if (teksRingkas.length > 450) {
-                    teksRingkas = teksRingkas.slice(0, 450) + "...";
-                }
-                return {
-                    judul: page.title,
-                    isi: teksRingkas
-                };
+        const dataSearch = await resSearch.json();
+        const daftarJudul = dataSearch[1] || [];
+        if (daftarJudul.length === 0) return null;
+
+        // Ambil judul terbaik yang paling relevan
+        let judulTerpilih = daftarJudul[0];
+        
+        // Cari ringkasan resmi dari halaman tersebut
+        const summaryUrl = `https://id.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(judulTerpilih)}`;
+        const resSummary = await fetch(summaryUrl);
+        if (!resSummary.ok) return null;
+
+        const dataSummary = await resSummary.json();
+        if (dataSummary && dataSummary.extract && dataSummary.extract.length > 25) {
+            // Bersihkan teks dari format kurung asing dan nomor rujukan
+            let uraian = dataSummary.extract
+                .replace(/\[\d+\]/g, "")
+                .replace(/\s*\([^)]*bahasa[^)]*\)/gi, "")
+                .replace(/\s+/g, " ")
+                .trim();
+            
+            // Potong jika terlalu panjang agar tetap padat & elegan
+            if (uraian.length > 420) {
+                uraian = uraian.slice(0, 420).replace(/\s+\S*$/, "") + "...";
             }
+
+            return {
+                judul: dataSummary.title,
+                penjelasan: uraian
+            };
         }
     } catch (e) {
         return null;
@@ -198,7 +226,19 @@ async function cariWebOnline(pertanyaan) {
     return null;
 }
 
-// Generator Daftar Resep
+// 5. Mesin Pengolah & Perangkai Kata Alami (Bebas dari tulisan Wikipedia)
+function olahJawabanWawasan(judul, isi) {
+    const salamPilihan = [
+        `Tentu! Mengenai **${judul}**, mari kita pahami secara jelas:`,
+        `Terkait hal yang kamu tanyakan mengenai **${judul}**, intisari pembahasannya adalah:`,
+        `Mengenai pemahaman tentang **${judul}**, berikut rangkuman penting yang perlu kamu ketahui:`
+    ];
+    const intro = salamPilihan[Math.floor(Math.random() * salamPilihan.length)];
+
+    return `${intro}\n\n👉 **${isi}**\n\nSemoga penjelasan ini tepat, jernih, dan menambah wawasanmu ya! ✌️😅`;
+}
+
+// Format Daftar Resep
 function buatDaftarResep() {
     if (daftarMenuResep.length === 0) {
         return "Halo! Daftar resep sedang disiapkan dari database lokal. Coba beberapa saat lagi ya.";
@@ -212,7 +252,7 @@ function buatDaftarResep() {
 }
 
 // Rangkai Jawaban Lokal
-function rangkaiJawabanLokal(fakta, query) {
+function rangkaiJawabanLokal(fakta) {
     const isResep = fakta.includes("dibuat") || fakta.includes("dimasak") || fakta.includes("goreng") || fakta.includes("rebus") || fakta.includes("bumbu");
 
     if (isResep) {
@@ -234,19 +274,19 @@ function rangkaiJawabanLokal(fakta, query) {
     return `Terkait pertanyaan yang kamu tanyakan, berikut ringkasan dari catatan materi lokal **OoeR Pro**:\n\n👉 **${fakta}**\n\nSemoga penjelasan ini tepat dan menambah pemahamanmu ya! ✌️😅`;
 }
 
-// 4. Proses Percakapan Menyeluruh (Lokal + Online)
+// 6. Otak Pemroses Menyeluruh
 async function prosesJawaban(input) {
     const t = input.toLowerCase().trim();
 
     // Sapaan
     if (["halo", "hallo", "hai", "hi", "oy", "p", "assalamualaikum"].includes(t)) {
-        return "Halo juga kawan! Senang bisa menyapa kamu. Ada materi resep, sains lokal, atau topik dunia apa yang ingin kita telusuri hari ini? Semoga jawabannya tepat ya ✌️😅";
+        return "Halo juga kawan! Senang bisa menyapa kamu. Ada materi resep, sains, atau topik wawasan apa yang ingin kita bahas tuntas hari ini? Semoga jawabannya tepat ya ✌️😅";
     }
 
     // Bantuan / Kemampuan
     if (t.includes("bisa bantu") || t.includes("bantu saya") || t.includes("bisa apa") || 
         t.includes("tolong bantu") || t.includes("bisa membantu") || t === "bantu" || t === "bantu saya ?") {
-        return "Tentu saja! Saya siap membantu kamu sepenuhnya. Saya menguasai 30 resep masakan lokal, analisis sosial, dan kini mampu menjelajahi web online untuk menjawab sains serta sejarah umum.\n\nApa topik yang ingin kamu tanyakan hari ini? ✌️😅";
+        return "Tentu saja! Saya siap membantu kamu sepenuhnya. Saya menguasai 30 resep masakan lokal, tips dapur, sains, realitas sosial, maupun wawasan umum secara mendalam.\n\nApa hal yang ingin kamu tanyakan hari ini? ✌️😅";
     }
 
     // Pembeda Diri vs Pencipta
@@ -263,7 +303,7 @@ async function prosesJawaban(input) {
 
     // Profil Arip Rahman
     if (t.includes("siapa arip") || t.includes("siapa arip rahman") || t.includes("profil arip")) {
-        return `**Arip Rahman** adalah pengembang independen yang menciptakan OoeR AI Pro secara mandiri melalui lingkungan terminal Termux.\n\nDalam lingkaran sosialnya, Arip dikenal memiliki pertemanan yang solid dan saling tolong-menolong bersama rekan-rekannya seperti Samsul, Bey, Ubed, Ikbal, Mang Alfi, Dokek, dan Gipari Adizkiri. ✌️😎`;
+        return `**Arip Rahman** adalah pengembang independen yang menciptakan OoeR AI Pro secara mandiri melalui lingkungan terminal Termux.\n\nDalam kehidupan sosialnya, Arip dikenal memiliki lingkaran pertemanan yang solid dan saling tolong-menolong bersama rekan-rekannya seperti Samsul, Bey, Ubed, Ikbal, Mang Alfi, Dokek, dan Gipari Adizkiri. ✌️😎`;
     }
 
     // Identitas & Tujuan Bot
@@ -271,9 +311,9 @@ async function prosesJawaban(input) {
         t.includes("pembuat") || t.includes("pencipta") || t.includes("dibuat") || t.includes("di buat") ||
         t.includes("bikin kamu") || t.includes("tujuan kamu")) {
         if (t.includes("tujuan") || t.includes("kenapa") || t.includes("mengapa") || t.includes("untuk apa")) {
-            return `Halo! **Tujuan utama saya diciptakan** adalah sebagai model kecerdasan buatan mandiri 0 MB karya **${PENCIPTA}**, agar mampu mengolah materi lokal dan menjelajahi informasi web secara cepat, mandiri, dan bebas ketergantungan dari server luar.\n\nSemoga keberadaan saya bermanfaat untukmu ya ✌️😅`;
+            return `Halo! **Tujuan utama saya diciptakan** adalah sebagai model kecerdasan buatan mandiri 0 MB karya **${PENCIPTA}**, agar mampu mengolah materi lokal dan menyajikan wawasan pengetahuan secara cepat, mandiri, dan bebas ketergantungan dari server luar.\n\nSemoga keberadaan saya bermanfaat untukmu ya ✌️😅`;
         }
-        return `Halo! Saya adalah **${NAMA_BOT}**, model kecerdasan buatan mandiri 0 MB yang dirancang dan dikembangkan langsung oleh **${PENCIPTA}** melalui terminal Termux. Saya siap membantu menyajikan informasi lokal maupun online. Semoga jawabannya tepat ya ✌️😅`;
+        return `Halo! Saya adalah **${NAMA_BOT}**, model kecerdasan buatan mandiri 0 MB yang dirancang dan dikembangkan langsung oleh **${PENCIPTA}** melalui terminal Termux. Saya siap membantu menyajikan informasi untukmu. Semoga jawabannya tepat ya ✌️😅`;
     }
 
     // Curhat & Motivasi
@@ -296,21 +336,22 @@ async function prosesJawaban(input) {
         if (subjekBaru.length > 3 && subjekBaru.length < 35) {
             konteksAktif = subjekBaru;
         }
-        return rangkaiJawabanLokal(faktaLokal, input);
+        return rangkaiJawabanLokal(faktaLokal);
     }
 
-    // TAHAP 2: Jika di Lokal Tidak Ada, Selancar Online ke Web (Wikipedia)
-    const hasilWeb = await cariWebOnline(input);
-    if (hasilWeb) {
-        konteksAktif = hasilWeb.judul;
-        return `🌐 **Hasil Penelusuran Web Ensiklopedia Terbuka (Online):**\n\n📌 **${hasilWeb.judul}**\n${hasilWeb.isi}\n\n💡 *Catatan OoeR Pro: Informasi di atas dihimpun secara real-time dari web online untuk melengkapi materi lokal.* Semoga jawabannya tepat ya ✌️😅`;
+    // TAHAP 2: Sistem Pengolahan & Penyelaman Wawasan Online
+    const subjekMurni = ekstrakSubjekMurni(input);
+    const wawasan = await cariWawasanOnline(subjekMurni);
+    if (wawasan) {
+        konteksAktif = wawasan.judul;
+        return olahJawabanWawasan(wawasan.judul, wawasan.penjelasan);
     }
 
-    // Jika di lokal dan web tidak ditemukan
-    return `Halo! Terkait pertanyaan "${input}", informasinya belum tercatat di data lokal OoeR Pro dan tidak ditemukan pada pencarian web cepat saat ini.\n\nKamu bisa coba menanyakan dengan kata kunci yang lebih spesifik ya. Semoga bisa dimaklumi! ✌️😅`;
+    // Jika tidak ditemukan di mana pun
+    return `Halo! Terkait pertanyaan "${input}", informasinya belum tercatat di data lokal OoeR Pro dan belum ditemukan pada penelusuran cepat saat ini.\n\nKamu bisa coba menanyakan topik tersebut dengan kata yang lebih spesifik ya. Semoga bisa dimaklumi! ✌️😅`;
 }
 
-// Efek Mengetik
+// Efek Mengetik Luwes
 let sedangMengetik = false;
 
 function ketikTeks(elemen, teksLengkap, selesaiCallback) {
@@ -346,7 +387,7 @@ async function kirimPesan() {
     const divLoading = document.createElement("div");
     divLoading.className = "msg bot thinking";
     divLoading.id = "status-loading";
-    divLoading.innerHTML = "⚡ <i>Ooer Pro sedang memindai materi lokal & menjelajahi web online...</i>";
+    divLoading.innerHTML = "⚡ <i>Ooer Pro sedang membedah materi & merangkai jawaban...</i>";
     box.appendChild(divLoading);
     box.scrollTop = box.scrollHeight;
 
