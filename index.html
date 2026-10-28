@@ -11,7 +11,7 @@
         header h1 { font-size: 1.15rem; color: #38bdf8; font-weight: 700; letter-spacing: 0.5px; }
         header p { font-size: 0.75rem; color: #94a3b8; }
         #chat-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-        .msg { max-width: 88%; padding: 14px 18px; border-radius: 16px; font-size: 0.92rem; line-height: 1.65; word-wrap: break-word; white-space: pre-wrap; }
+        .msg { max-width: 88%; padding: 14px 18px; border-radius: 16px; font-size: 0.92rem; line-height: 1.7; word-wrap: break-word; white-space: pre-wrap; }
         .bot { align-self: flex-start; background-color: #1e293b; color: #e2e8f0; border-bottom-left-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25); border: 1px solid #334155; }
         .user { align-self: flex-end; background-color: #0284c7; color: #ffffff; border-bottom-right-radius: 4px; }
         .thinking { font-style: italic; color: #38bdf8; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
@@ -26,17 +26,17 @@
 
 <header>
     <h1>⚡ OoeR AI Pro</h1>
-    <p>Kecerdasan Mandiri — Karya Arip Rahman</p>
+    <p>Mesin Pengolah Bahasa Mandiri — Karya Arip Rahman</p>
 </header>
 
 <div id="chat-box">
     <div class="msg bot">Halo! Saya <b>OoeR AI Pro</b>, kecerdasan buatan mandiri yang dikembangkan langsung oleh <b>Arip Rahman</b> melalui Termux.
 
-Saya menguasai seluruh materi lokal dan 30 resep masakan, serta memiliki wawasan luas untuk mendiskusikan sains, sejarah, dan ilmu pengetahuan umum. Ada yang ingin kamu tanyakan hari ini? Semoga jawabannya tepat ya ✌️😅</div>
+Saya dilengkapi mesin pengolah bahasa adaptif yang mampu merangkai jawaban, menyusun rekomendasi poin teratur, hingga membedah wawasan sains dan sejarah secara terstruktur. Ada yang ingin kamu diskusikan hari ini? Semoga jawabannya tepat ya ✌️😅</div>
 </div>
 
 <div id="input-area">
-    <input type="text" id="pesan-input" placeholder="Tanyakan apa saja seputar masakan, sains, sejarah..." autocomplete="off">
+    <input type="text" id="pesan-input" placeholder="Tanyakan ide usaha, resep, analisis, sains..." autocomplete="off">
     <button id="kirim-btn" onclick="kirimPesan()">Kirim</button>
 </div>
 
@@ -59,6 +59,8 @@ const STOPWORDS = new Set([
     "dibikin", "bikin", "tolong", "coba", "kasih", "tahu", "kamu", "saya", "aku"
 ]);
 
+const KATA_SIFAT_WARNA = new Set(["merah", "putih", "kuning", "hijau", "hitam", "manis", "asin", "pedas", "panas", "dingin"]);
+
 function tokenisasi(teks, filterStop = false) {
     const list = teks.toLowerCase()
                      .replace(/[^a-z0-9\s]/g, " ")
@@ -70,23 +72,24 @@ function tokenisasi(teks, filterStop = false) {
     return list;
 }
 
-// 1. Ekstraktor Inti Pertanyaan (Bersihkan kata tanya & bumbu)
+// 1. Ekstraktor Subjek Pintar
 function ekstrakSubjekMurni(teks) {
     let t = teks.toLowerCase()
-        .replace(/^(apa itu|apakah yang dimaksud|apa yang dimaksud|apa arti|apa artinya|arti dari|artinya|apa makna|makna dari|siapa itu|siapakah|sejarah singkat|sejarah|pengertian|definisi|tentang|tolong jelaskan|jelaskan|tahu tentang)/gi, "")
+        .replace(/^(kenapa|mengapa|apa itu|apakah yang dimaksud|apa yang dimaksud|apa arti|apa artinya|arti dari|artinya|apa makna|makna dari|siapa itu|siapakah|sejarah singkat|sejarah|pengertian|definisi|tentang|tolong jelaskan|jelaskan|tahu tentang)/gi, "")
         .replace(/[^a-z0-9\s]/gi, " ")
         .trim();
     
-    // Jika masih ada kata borobudur, utamakan kata spesifik tersebut
-    if (t.includes("borobudur")) return "borobudur";
-    if (t.includes("indonesia")) return "indonesia";
+    if (t.includes("merah putih") || (t.includes("merah") && t.includes("putih"))) {
+        return "Bendera Indonesia";
+    }
+    if (t.includes("borobudur")) return "Borobudur";
+    if (t.includes("indonesia") && t.split(/\s+/).length <= 2) return "Indonesia";
     return t;
 }
 
 // 2. Muat Database Lokal
 async function muatMateriOtonom() {
     let teksGabung = "";
-    
     try {
         const resResep = await fetch("resep.txt");
         if (resResep.ok) {
@@ -150,16 +153,29 @@ function cariFaktaLokal(pertanyaan) {
     const kataKunci = tokenisasi(pertanyaan, true);
     if (kataKunci.length === 0 || totalDokumen === 0) return null;
 
+    const teksLower = pertanyaan.toLowerCase();
+    const isTopikNonKuliner = teksLower.includes("indonesia") || teksLower.includes("merah putih") || 
+                              teksLower.includes("negara") || teksLower.includes("bendera") || 
+                              teksLower.includes("planet") || teksLower.includes("presiden") ||
+                              teksLower.includes("usaha") || teksLower.includes("bisnis");
+
     let skorTertinggi = 0;
     let pemenang = null;
 
     dokumenMateri.forEach(dok => {
+        const isResepDok = dok.teks.includes("dibuat") || dok.teks.includes("dimasak") || dok.teks.includes("goreng") || dok.teks.includes("rebus");
+        if (isTopikNonKuliner && isResepDok) return;
+
         let skorDokumen = 0;
         let kataCocok = 0;
+        let adaKataKunciSubstansial = false;
 
         kataKunci.forEach(k => {
             if (dok.tokenSet.has(k)) {
                 kataCocok++;
+                if (!KATA_SIFAT_WARNA.has(k)) {
+                    adaKataKunciSubstansial = true;
+                }
                 const df = frekuensiDokumen[k] || 1;
                 const idf = Math.log(1 + (totalDokumen / df));
                 const tf = dok.tokens.filter(x => x === k).length;
@@ -167,7 +183,7 @@ function cariFaktaLokal(pertanyaan) {
             }
         });
 
-        if (kataCocok > 0 && skorDokumen > skorTertinggi) {
+        if (kataCocok > 0 && adaKataKunciSubstansial && skorDokumen > skorTertinggi) {
             skorTertinggi = skorDokumen;
             pemenang = dok;
         }
@@ -179,12 +195,11 @@ function cariFaktaLokal(pertanyaan) {
     return null;
 }
 
-// 4. Mesin Penyelam Pengetahuan Online Cerdas (Dengan Validasi Relevansi)
+// 4. Mesin Penyelam Pengetahuan Online
 async function cariWawasanOnline(subjek) {
     if (!subjek || subjek.length < 2) return null;
 
     try {
-        // Gunakan pencarian OpenSearch untuk menemukan judul topik yang paling tepat
         const searchUrl = `https://id.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(subjek)}&limit=3&namespace=0&format=json&origin=*`;
         const resSearch = await fetch(searchUrl);
         if (!resSearch.ok) return null;
@@ -193,27 +208,18 @@ async function cariWawasanOnline(subjek) {
         const daftarJudul = dataSearch[1] || [];
         if (daftarJudul.length === 0) return null;
 
-        // Ambil judul terbaik yang paling relevan
         let judulTerpilih = daftarJudul[0];
-        
-        // Cari ringkasan resmi dari halaman tersebut
         const summaryUrl = `https://id.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(judulTerpilih)}`;
         const resSummary = await fetch(summaryUrl);
         if (!resSummary.ok) return null;
 
         const dataSummary = await resSummary.json();
         if (dataSummary && dataSummary.extract && dataSummary.extract.length > 25) {
-            // Bersihkan teks dari format kurung asing dan nomor rujukan
             let uraian = dataSummary.extract
                 .replace(/\[\d+\]/g, "")
                 .replace(/\s*\([^)]*bahasa[^)]*\)/gi, "")
                 .replace(/\s+/g, " ")
                 .trim();
-            
-            // Potong jika terlalu panjang agar tetap padat & elegan
-            if (uraian.length > 420) {
-                uraian = uraian.slice(0, 420).replace(/\s+\S*$/, "") + "...";
-            }
 
             return {
                 judul: dataSummary.title,
@@ -226,19 +232,63 @@ async function cariWawasanOnline(subjek) {
     return null;
 }
 
-// 5. Mesin Pengolah & Perangkai Kata Alami (Bebas dari tulisan Wikipedia)
-function olahJawabanWawasan(judul, isi) {
-    const salamPilihan = [
-        `Tentu! Mengenai **${judul}**, mari kita pahami secara jelas:`,
-        `Terkait hal yang kamu tanyakan mengenai **${judul}**, intisari pembahasannya adalah:`,
-        `Mengenai pemahaman tentang **${judul}**, berikut rangkuman penting yang perlu kamu ketahui:`
-    ];
-    const intro = salamPilihan[Math.floor(Math.random() * salamPilihan.length)];
+// 5. DAPUR PENGOLAH BAHASA ADAPTIF (NLG SYNTHESIZER)
+// Mengolah bahan mentah menjadi jawaban terstruktur sesuai pertanyaan
+function olahBahasaAdaptif(judul, isiMentah, queryUser) {
+    const q = queryUser.toLowerCase();
 
-    return `${intro}\n\n👉 **${isi}**\n\nSemoga penjelasan ini tepat, jernih, dan menambah wawasanmu ya! ✌️😅`;
+    // Model Analisis Alasan (Kenapa / Mengapa)
+    if (q.includes("kenapa") || q.includes("mengapa") || q.includes("alasan") || q.includes("sebab")) {
+        // Pecah kalimat-kalimat fakta
+        const kalimatList = isiMentah.split(/(?<=[.!?])\s+/).filter(k => k.length > 15);
+        let fakta1 = kalimatList[0] || isiMentah;
+        let fakta2 = kalimatList[1] || "";
+
+        let hasil = `Pertanyaan yang sangat menarik mengenai **${judul}**! Mari kita bedah faktor dan duduk perkaranya secara tuntas:\n\n`;
+        hasil += `🔍 **Latar Belakang & Hakikat:**\n${fakta1}\n\n`;
+        if (fakta2) {
+            hasil += `💡 **Faktor & Makna Penting:**\n${fakta2}\n\n`;
+        }
+        hasil += `📌 **Intisari Kesimpulan:**\nDari penelusuran tersebut, hal ini membuktikan bahwa setiap simbol dan peristiwa memiliki filosofi kuat yang saling mengunci maknanya. Semoga ulasan ini menjawab rasa penasaranmu ya! ✌️😅`;
+        return hasil;
+    }
+
+    // Model Panduan Cara / Langkah
+    if (q.includes("bagaimana") || q.includes("gimana") || q.includes("cara") || q.includes("langkah") || q.includes("tahap")) {
+        const kalimatList = isiMentah.split(/(?<=[.!?])\s+/).filter(k => k.length > 15);
+        let hasil = `Siap! Berikut adalah panduan sistematis mengenai **${judul}**:\n\n`;
+        kalimatList.slice(0, 3).forEach((kal, idx) => {
+            hasil += `${idx + 1}️⃣ **Poin ${idx + 1}:** ${kal}\n`;
+        });
+        hasil += `\n💡 **Kunci Keberhasilan:** Kerapian langkah dan ketepatan pemahaman dasar menjadi penentu utama hasil akhirnya. Semoga bermanfaat ya! ✌️😅`;
+        return hasil;
+    }
+
+    // Model Pengertian & Definisi Jernih
+    let ringkas = isiMentah;
+    if (ringkas.length > 400) {
+        ringkas = ringkas.slice(0, 400).replace(/\s+\S*$/, "") + "...";
+    }
+    return `Tentu! Mengenai pemahaman tentang **${judul}**, berikut rangkuman penting yang perlu kamu ketahui:\n\n👉 **${ringkas}**\n\nSemoga penjelasan ini tepat, jernih, dan menambah wawasanmu ya! ✌️😅`;
 }
 
-// Format Daftar Resep
+// 6. GENERATOR REKOMENDASI 10 USAHA BRILIAN
+function buatRekomendasiUsaha(query) {
+    return `Ide dan langkah yang luar biasa! Jika kamu sedang mencari inspirasi peluang bisnis yang menjanjikan, realistis, dan bisa dimulai dari modal kecil hingga menengah, berikut adalah **10 Rekomendasi Usaha Brilian** pilihan OoeR AI Pro:\n\n` +
+           `1. 🍳 **Kuliner Sarapan / Cloud Kitchen Rumahan** — Modal bahan harian cepat berputar, fokus pada menu praktis seperti nasi uduk, bubur, atau lauk siap saji.\n` +
+           `2. ☕ **Kopi & Minuman Kekinian Booth Mini** — Margin keuntungan tinggi dengan fokus pada lokasi padat aktivitas atau dekat area kampus/sekolah.\n` +
+           `3. 📦 **Jasa Titip & Agen Pengiriman Paket (Ekspedisi)** — Pertumbuhan belanja online membuat loket pengiriman paket rumahan selalu ramai pelanggan.\n` +
+           `4. 💻 **Jasa Digital Freelance (Desain, Video, Penulis, Coding)** — Usaha murni berbasis keahlian dengan modal utama laptop/HP dan koneksi internet.\n` +
+           `5. 👕 **Thrift Shop / Pakaian Kurasi Online** — Memilah pakaian berkualitas dengan foto produk estetik untuk dijual di media sosial dan marketplace.\n` +
+           `6. 🧺 **Laundry Kiloan & Sepatu Express** — Sangat diminati di area kos mahasiswa dan pekerja kantor yang membutuhkan kepraktisan harian.\n` +
+           `7. 🛒 **Warung Sembako & Kebutuhan Pokok Digital** — Kebutuhan dasar manusia yang selalu dibeli setiap hari, bisa dipadukan dengan pesan antar tetangga.\n` +
+           `8. 📱 **Konter Pulsa, Top Up Game & Pembayaran PPOB** — Menjadi pusat pembayaran listrik, air, BPJS, dan pulsa warga sekitar tanpa perlu sewa tempat mahal.\n` +
+           `9. 🧽 **Jasa Cuci Kendaraan (Motor & Mobil) Rumahan** — Modal alat cuci air bertekanan dan sabun, menawarkan hasil bersih detail dan ramah warga.\n` +
+           `10. 🪴 **Tanaman Hias & Bibit Herbal Organik** — Tren gaya hidup hijau yang banyak dicari untuk hiasan teras rumah maupun kafe perkotaan.\n\n` +
+           `💡 **Kunci Sukses Usaha:** Mulailah dari apa yang kamu kuasai, kelola pencatatan keuangan secara ketat (jangan dicampur uang pribadi), dan jaga konsistensi rasa atau pelayanan pelangganmu.\n\nSemoga bisnis yang kamu rintis berkembang sukses dan berkah ya! ✌️😎`;
+}
+
+// Format Daftar Resep Lokal
 function buatDaftarResep() {
     if (daftarMenuResep.length === 0) {
         return "Halo! Daftar resep sedang disiapkan dari database lokal. Coba beberapa saat lagi ya.";
@@ -251,7 +301,7 @@ function buatDaftarResep() {
     return hasil;
 }
 
-// Rangkai Jawaban Lokal
+// Rangkai Resep Lokal
 function rangkaiJawabanLokal(fakta) {
     const isResep = fakta.includes("dibuat") || fakta.includes("dimasak") || fakta.includes("goreng") || fakta.includes("rebus") || fakta.includes("bumbu");
 
@@ -274,19 +324,24 @@ function rangkaiJawabanLokal(fakta) {
     return `Terkait pertanyaan yang kamu tanyakan, berikut ringkasan dari catatan materi lokal **OoeR Pro**:\n\n👉 **${fakta}**\n\nSemoga penjelasan ini tepat dan menambah pemahamanmu ya! ✌️😅`;
 }
 
-// 6. Otak Pemroses Menyeluruh
+// 7. Otak Pemroses Menyeluruh
 async function prosesJawaban(input) {
     const t = input.toLowerCase().trim();
 
-    // Sapaan
+    // Sapaan Ramah
     if (["halo", "hallo", "hai", "hi", "oy", "p", "assalamualaikum"].includes(t)) {
-        return "Halo juga kawan! Senang bisa menyapa kamu. Ada materi resep, sains, atau topik wawasan apa yang ingin kita bahas tuntas hari ini? Semoga jawabannya tepat ya ✌️😅";
+        return "Halo juga kawan! Senang bisa menyapa kamu. Ada materi resep, ide bisnis, sains, atau topik wawasan apa yang ingin kita bahas tuntas hari ini? Semoga jawabannya tepat ya ✌️😅";
+    }
+
+    // Permintaan Ide Usaha / Rekomendasi Bisnis (1 Sampai 10)
+    if (t.includes("usaha") || t.includes("bisnis") || t.includes("ide jualan") || t.includes("peluang usaha") || t.includes("contoh usaha")) {
+        return buatRekomendasiUsaha(input);
     }
 
     // Bantuan / Kemampuan
     if (t.includes("bisa bantu") || t.includes("bantu saya") || t.includes("bisa apa") || 
         t.includes("tolong bantu") || t.includes("bisa membantu") || t === "bantu" || t === "bantu saya ?") {
-        return "Tentu saja! Saya siap membantu kamu sepenuhnya. Saya menguasai 30 resep masakan lokal, tips dapur, sains, realitas sosial, maupun wawasan umum secara mendalam.\n\nApa hal yang ingin kamu tanyakan hari ini? ✌️😅";
+        return "Tentu saja! Saya siap membantu kamu sepenuhnya. Saya menguasai 30 resep masakan lokal, tips dapur, rekomendasi peluang bisnis, sains, maupun wawasan sejarah umum secara mendalam.\n\nApa hal yang ingin kamu tanyakan hari ini? ✌️😅";
     }
 
     // Pembeda Diri vs Pencipta
@@ -344,10 +399,10 @@ async function prosesJawaban(input) {
     const wawasan = await cariWawasanOnline(subjekMurni);
     if (wawasan) {
         konteksAktif = wawasan.judul;
-        return olahJawabanWawasan(wawasan.judul, wawasan.penjelasan);
+        // OLAH SECARA ADAPTIF (Bukan jeplak mentah!)
+        return olahBahasaAdaptif(wawasan.judul, wawasan.penjelasan, input);
     }
 
-    // Jika tidak ditemukan di mana pun
     return `Halo! Terkait pertanyaan "${input}", informasinya belum tercatat di data lokal OoeR Pro dan belum ditemukan pada penelusuran cepat saat ini.\n\nKamu bisa coba menanyakan topik tersebut dengan kata yang lebih spesifik ya. Semoga bisa dimaklumi! ✌️😅`;
 }
 
@@ -387,7 +442,7 @@ async function kirimPesan() {
     const divLoading = document.createElement("div");
     divLoading.className = "msg bot thinking";
     divLoading.id = "status-loading";
-    divLoading.innerHTML = "⚡ <i>Ooer Pro sedang membedah materi & merangkai jawaban...</i>";
+    divLoading.innerHTML = "⚡ <i>Ooer Pro sedang membedah materi & merangkai susunan jawaban...</i>";
     box.appendChild(divLoading);
     box.scrollTop = box.scrollHeight;
 
