@@ -8,7 +8,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
   body { 
-    background: #06110c; 
+    background: #000000; 
     color: #e6ede9; 
     min-height: 100vh;
     display: flex;
@@ -20,27 +20,26 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background: #06110c;
+    background: #000000;
     position: relative;
   }
 
-  /* Header */
+  /* Header Bersih Tanpa Logo Masjid */
   .header {
-    padding: 14px 20px;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #143324;
+    border-bottom: 1px solid #141414;
     position: sticky;
     top: 0;
-    background: #06110c;
+    background: #000000;
     z-index: 50;
   }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand h1 { font-size: 15px; font-weight: 700; color: #f4eedb; }
-  .status { font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px; }
+  .brand h1 { font-size: 16px; font-weight: 700; color: #f4eedb; letter-spacing: 0.5px; }
+  .status { font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px; margin-top: 2px; }
   .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 6px #4ade80; }
-  .arabic { font-family: 'Amiri', serif; font-size: 17px; color: #d4af37; background: #0c2017; padding: 2px 12px; border-radius: 20px; border: 1px solid #1c4533; }
+  .arabic { font-family: 'Amiri', serif; font-size: 17px; color: #d4af37; background: #0a0a0a; padding: 2px 12px; border-radius: 20px; border: 1px solid #1f1f1f; }
 
   /* Chat Container */
   .chat-container {
@@ -48,10 +47,10 @@
     padding: 24px 18px 120px;
     display: flex;
     flex-direction: column;
-    gap: 26px;
+    gap: 22px;
   }
 
-  /* Sapaan Hidup / Typing Animation */
+  /* Sapaan Awal */
   .welcome-wrap {
     text-align: center;
     margin: 8px auto 14px;
@@ -70,7 +69,7 @@
   .bismillah-arab {
     font-family: 'Amiri', serif;
     font-size: 20px;
-    color: #72d99d;
+    color: #4ade80;
     margin: 10px 0;
     opacity: 0;
     animation: fadeIn 1.2s 0.6s forwards;
@@ -78,8 +77,7 @@
   .welcome-text {
     font-size: 14.5px;
     line-height: 1.8;
-    color: #edf3f0;
-    min-height: 50px;
+    color: #d1d5db;
   }
   .cursor {
     display: inline-block;
@@ -91,49 +89,60 @@
     margin-left: 3px;
   }
 
-  /* Bubble User */
+  /* Teks Pertanyaan User DI PINGGIR KANAN */
   .user-bubble {
-    text-align: center;
-    background: rgba(27, 71, 51, 0.4);
+    align-self: flex-end;
+    margin-left: auto;
+    margin-right: 0;
+    text-align: right;
+    background: #0f291c;
     color: #9fe2bd;
     padding: 10px 18px;
-    border-radius: 25px;
-    margin: 0 auto;
-    font-size: 13.5px;
-    max-width: 85%;
-    border: 1px solid #24583e;
+    border-radius: 20px 20px 4px 20px;
+    font-size: 14px;
+    max-width: 82%;
+    border: 1px solid #1b4d35;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
   }
 
-  /* Jawaban AI dengan Tombol Copy di Pojok Kanan Atas */
+  /* Teks Jawaban AI (Di Tengah, Tapi Jajaran Sejajar Rapi) */
   .ai-bubble {
     position: relative;
-    text-align: center;
     width: 100%;
+    max-width: 95%;
     margin: 0 auto;
-    padding: 14px 28px 4px 28px;
+    text-align: left; /* Rapi sejajar, bukan melayang acak */
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-left: 3px solid #d4af37; /* Aksen garis emas */
+    border-radius: 12px;
+    padding: 16px 36px 16px 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
   }
   .ai-text {
     font-size: 15px;
     line-height: 1.8;
-    color: #f1f5f3;
+    color: #f3f4f6;
+    text-align: left;
   }
   .arab-text {
     font-family: 'Amiri', serif;
     font-size: 21px;
     color: #ffd977;
-    margin: 12px 0;
+    margin: 12px 0 6px 0;
     line-height: 2;
     direction: rtl;
+    text-align: right; /* Khusus teks Arab rata kanan */
   }
 
-  /* Tombol Ikon Copy Pojok Kanan Atas (Tanpa Teks) */
+  /* Tombol Ikon Copy Pojok Kanan Atas */
   .btn-copy-icon {
     position: absolute;
-    top: 0;
-    right: 4px;
+    top: 10px;
+    right: 10px;
     background: transparent;
     border: none;
-    color: #799788;
+    color: #6b7280;
     cursor: pointer;
     padding: 6px;
     border-radius: 6px;
@@ -147,11 +156,11 @@
     color: #4ade80;
   }
   .btn-copy-icon svg {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
   }
 
-  /* Input Chat Melayang */
+  /* Input Chat Melayang di Bawah */
   .input-wrap {
     position: fixed;
     bottom: 20px;
@@ -167,11 +176,14 @@
     max-width: 440px;
     display: flex;
     align-items: center;
-    background: #0d241a;
-    border: 1.5px solid #286348;
+    background: #0d0d0d;
+    border: 1.5px solid #222222;
     border-radius: 35px;
     padding: 6px 8px 6px 18px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.9);
+  }
+  .input-bar:focus-within {
+    border-color: #1b4d35;
   }
   .input-bar input {
     flex: 1;
@@ -181,14 +193,14 @@
     font-size: 14px;
     outline: none;
   }
-  .input-bar input::placeholder { color: #6d8a7c; text-align: center; }
+  .input-bar input::placeholder { color: #555; text-align: center; }
   .btn-send {
     width: 42px;
     height: 42px;
     border-radius: 50%;
     background: #d4af37;
     border: none;
-    color: #06110c;
+    color: #000;
     font-size: 16px;
     cursor: pointer;
     font-weight: bold;
@@ -201,9 +213,7 @@
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
+  @keyframes blink { 50% { opacity: 0; } }
 </style>
 </head>
 <body>
@@ -211,17 +221,14 @@
 <div class="app">
   <div class="header">
     <div class="brand">
-      <span style="font-size:22px;">🕌</span>
-      <div>
-        <h1>ZHARFUL - AI</h1>
-        <div class="status"><span class="dot"></span> Status: Manshub (Aktif)</div>
-      </div>
+      <h1>ZHARFUL - AI</h1>
+      <div class="status"><span class="dot"></span> Status: Manshub (Aktif)</div>
     </div>
     <div class="arabic">ظَرْفُ الذَّكَاءِ</div>
   </div>
 
   <div class="chat-container" id="box">
-    <!-- Sapaan Animasi Hidup -->
+    <!-- Sapaan Animasi Typewriter -->
     <div class="welcome-wrap">
       <div class="salam-arab">السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</div>
       <div class="bismillah-arab">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
@@ -240,7 +247,7 @@
 </div>
 
 <script>
-// Animasi Typewriter Sapaan Hidup
+// Sapaan Animasi Hidup
 const salamText = "Selamat datang di Zharful–AI, wadah mudzakarah ilmu Nahwu, Shorof, dan Fiqih Pesantren. Semoga dengan membaca bismillah, Zharful bisa membantu menjawab pertanyaan Anda dengan benar, tepat, dan penuh keberkahan ilmu.";
 let textIdx = 0;
 
@@ -248,7 +255,7 @@ function ketikSapaan() {
   if (textIdx < salamText.length) {
     document.getElementById("typing-text").innerHTML += salamText.charAt(textIdx);
     textIdx++;
-    setTimeout(ketikSapaan, 25);
+    setTimeout(ketikSapaan, 22);
   } else {
     setTimeout(() => {
       const cur = document.getElementById("cursor");
@@ -256,7 +263,7 @@ function ketikSapaan() {
     }, 1500);
   }
 }
-setTimeout(ketikSapaan, 1000);
+setTimeout(ketikSapaan, 800);
 
 let count = 1;
 const copySvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
@@ -277,7 +284,8 @@ function kirim() {
   if(!val) return;
 
   const box = document.getElementById('box');
-  box.innerHTML += `<div class="user-bubble">"${val}"</div>`;
+  // Pertanyaan Rata Kanan
+  box.innerHTML += `<div class="user-bubble">${val}</div>`;
   inp.value = '';
   window.scrollTo(0, document.body.scrollHeight);
 
@@ -286,27 +294,30 @@ function kirim() {
     let arab = "";
 
     const q = val.toLowerCase();
-    if(q.includes('kalimah') || q.includes('kalimat')) {
-      text = "Kalimah (الكلمة) dalam ilmu Nahwu adalah lafadz yang diletakkan untuk menunjukkan makna mufrod (kata tunggal). Kalimah terbagi menjadi 3 bagian: Isim, Fi'il, dan Huruf yang bermakna.";
+    if(q.includes('salam') || q.includes('assalam') || q.includes('asalam')) {
+      text = "Wa'alaikumussalam warahmatullah wabarakatuh. Ahlan wa sahlan! Ada bab Nahwu, Shorof, atau Fiqih yang ingin dimudzakarahkan?";
+      arab = "وَعَلَيْكُمُ السَّلاَمُ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ";
+    } else if(q.includes('kalimah') || q.includes('kalimat')) {
+      text = "Kalimah (الكلمة) dalam ilmu Nahwu adalah lafadz yang diletakkan untuk menunjukkan makna mufrod (kata tunggal). Terbagi menjadi 3 bagian: Isim, Fi'il, dan Huruf yang bermakna.";
       arab = "الكَلِمَةُ هِيَ اللَّفْظُ المَوْضُوعُ لِمَعْنًى مُفْرَدٍ";
     } else if(q.includes('isim')) {
       text = "Isim adalah kata yang menunjukkan arti pada dirinya sendiri dan tidak terikat oleh waktu. Tandanya: dapat menerima i'rab khofadh/jer, tanwin, kemasukan alif lam (ال), dan kemasukan huruf jer.";
       arab = "فَالِاسْمُ يُعْرَفُ: بِالْخَفْضِ، وَالتَّنْوِينِ، وَدُخُولِ الْأَلِفِ وَاللَّامِ";
     } else if(q.includes('fi\'il') || q.includes('fiil')) {
-      text = "Fi'il adalah kata yang menunjukkan arti pada dirinya sendiri dan terikat dengan waktu (lampau, sekarang, atau masa depan). Tandanya: bisa kemasukan Qad, Sin, Saufa, dan Ta' Ta'nits Sakinah.";
+      text = "Fi'il adalah kata yang menunjukkan arti pada dirinya sendiri dan terikat dengan salah satu waktu (lampau, sekarang, atau akan datang). Tandanya: bisa kemasukan Qad, Sin, Saufa, dan Ta' Ta'nits Sakinah.";
       arab = "وَالْفِعْلُ يُعْرَفُ بِقَدْ، وَالسِّينِ، وَسَوْفَ، وَتَاءِ التَّأْنِيثِ السَّاكِنَةِ";
     } else if(q.includes('kalam')) {
       text = "Kalam adalah lafadz yang tersusun, memberi faedah sempurna, dan disengaja dengan bahasa Arab. Bagian kalam ada 3: Isim, Fi'il, dan Huruf.";
       arab = "الكَلَامُ هُوَ اللَّفْظُ المُرَكَّبُ المُفِيدُ بِالوُضْعِ";
     } else if(q.includes('dzorof') || q.includes('zhorof') || q.includes('dhorof')) {
-      text = "Dzorof adalah isim penunjuk waktu atau tempat yang dibaca nashob dengan mentaqdirkan makna 'fī' (di dalam/pada). Dibagi menjadi Dzorof Zaman dan Dzorof Makan.";
+      text = "Dzorof adalah isim penunjuk waktu atau tempat yang dibaca nashob dengan mentaqdirkan makna 'fī' (di dalam/pada). Dibagi menjadi Dzorof Zaman (waktu) dan Dzorof Makan (tempat).";
       arab = "ظَرْفُ الزَّمَانِ هُوَ اسْمُ الزَّمَانِ الْمَنْصُوبُ بِتَقْدِيرِ فِي";
     }
 
     const currentId = "item-" + count++;
     let out = `
       <div class="ai-bubble" id="${currentId}">
-        <button class="btn-copy-icon" onclick="copyJawaban('${currentId}', this)" title="Salin Jawaban">${copySvg}</button>
+        <button class="btn-copy-icon" onclick="copyJawaban('${currentId}', this)" title="Salin">${copySvg}</button>
         <div class="ai-text">${text}</div>`;
     if(arab) out += `<div class="arab-text">${arab}</div>`;
     out += `</div>`;
