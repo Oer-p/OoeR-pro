@@ -3,60 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Generator</title>
+  <title>Neural AI Chat</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #0d1117; color: #c9d1d9; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 25px 15px; }
-    .container { max-width: 600px; width: 100%; }
+    body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column; }
 
-    /* Input Box */
-    .input-box { display: flex; gap: 8px; margin-bottom: 20px; }
-    input { flex: 1; padding: 12px 16px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; color: #fff; font-size: 0.95rem; outline: none; }
-    input:focus { border-color: #58a6ff; }
-    button { padding: 12px 20px; background: #238636; border: none; border-radius: 12px; color: #fff; font-weight: 600; cursor: pointer; }
+    /* Header atas simpel */
+    header { padding: 14px 20px; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; }
+    .logo-title { font-size: 1rem; font-weight: 700; color: #f0f6fc; display: flex; align-items: center; gap: 8px; }
 
-    /* Card Hasil */
-    .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 16px; width: 100%; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .judul { font-size: 1.3rem; font-weight: 800; color: #f0f6fc; margin-bottom: 12px; }
-    .isi { font-size: 0.95rem; line-height: 1.7; color: #8b949e; margin-bottom: 20px; white-space: pre-line; }
-    .divider { height: 1px; background-color: #21262d; margin-bottom: 16px; }
-    .footer { display: flex; justify-content: flex-start; }
-    .badge { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8rem; font-weight: 500; color: #58a6ff; background-color: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); padding: 6px 14px; border-radius: 20px; text-decoration: none; }
+    /* Area Chat (Tengah & Scrollable) */
+    .chat-container { flex: 1; overflow-y: auto; padding: 20px 15px 100px 15px; display: flex; flex-direction: column; gap: 20px; max-width: 720px; width: 100%; margin: 0 auto; }
+
+    /* Pesan User (Kanan) */
+    .user-msg { align-self: flex-end; background-color: #1f6feb; color: #ffffff; padding: 12px 18px; border-radius: 18px 18px 4px 18px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; font-weight: 500; }
+
+    /* Card Balasan AI (Kiri/Tengah) */
+    .ai-card { background-color: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: fadeIn 0.3s ease; }
+    .ai-title { font-size: 1.25rem; font-weight: 800; color: #f0f6fc; margin-bottom: 12px; line-height: 1.3; }
+    .ai-body { font-size: 0.95rem; font-weight: 400; line-height: 1.75; color: #c9d1d9; white-space: pre-wrap; margin-bottom: 20px; }
+    .divider { height: 1px; background-color: #21262d; margin-bottom: 14px; }
+    
+    /* Badge Rujukan Kiri Bawah */
+    .footer-source { display: flex; justify-content: flex-start; }
+    .source-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 500; color: #58a6ff; background-color: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); padding: 5px 12px; border-radius: 20px; text-decoration: none; }
+
+    /* Loading Animasi */
+    .loading-pulse { color: #8b949e; font-style: italic; display: flex; align-items: center; gap: 8px; }
+
+    /* Input Bar di Paling Bawah (Sticky ChatGPT Style) */
+    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(13,17,23,0) 0%, #0d1117 30%); padding: 15px; display: flex; justify-content: center; }
+    .input-wrapper { max-width: 720px; width: 100%; display: flex; gap: 10px; background: #161b22; border: 1px solid #30363d; border-radius: 25px; padding: 6px 8px 6px 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+    .input-wrapper:focus-within { border-color: #58a6ff; }
+    input { flex: 1; background: transparent; border: none; color: #f0f6fc; font-size: 0.95rem; outline: none; }
+    button { background-color: #238636; border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
+    button:hover { background-color: #2ea043; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <!-- Kolom Input Pertanyaan -->
-    <div class="input-box">
-      <input type="text" id="userInput" placeholder="Ketik topik atau pertanyaan...">
-      <button onclick="prosesJawaban()">Kirim</button>
+  <header>
+    <div class="logo-title">
+      <span>⚡</span>
+      <span>Generative Neural Chat</span>
     </div>
+  </header>
 
-    <!-- Kotak Hasil Jawaban -->
-    <div class="card" id="outputCard">
-      <h1 class="judul" id="judulHasil">Menunggu Input...</h1>
-      <p class="isi" id="teksHasil">Ketik topik di atas lalu tekan tombol Kirim untuk melihat hasilnya.</p>
-      <div class="divider"></div>
-      <div class="footer">
-        <a id="linkSumber" href="https://id.wikipedia.org" target="_blank" class="badge">
-          <span>🌐</span>
-          <span id="labelSumber">Wikipedia</span>
-          <span>&rsaquo;</span>
-        </a>
-      </div>
+  <!-- Area Pesan -->
+  <div class="chat-container" id="chatFlow">
+    <div class="ai-card">
+      <h2 class="ai-title">Siap Berpikir</h2>
+      <p class="ai-body">Ketik pertanyaan atau topik di bawah. Jaringan saraf akan mengolah konsep dan merangkai penjelasannya untuk Anda.</p>
+    </div>
+  </div>
+
+  <!-- Chat Input di Paling Bawah -->
+  <div class="bottom-bar">
+    <div class="input-wrapper">
+      <input type="text" id="userInput" placeholder="Tanyakan apa saja..." onkeypress="handleEnter(event)">
+      <button onclick="kirimPesan()">➔</button>
     </div>
   </div>
 
   <script>
-    function prosesJawaban() {
-      const q = document.getElementById('userInput').value;
-      if (!q) return;
+    function handleEnter(e) {
+      if (e.key === 'Enter') kirimPesan();
+    }
 
-      document.getElementById('judulHasil').innerText = q;
-      document.getElementById('teksHasil').innerText = "Sedang mensintesis konsep dari jaringan saraf tanpa kata kunci kaku...";
-      document.getElementById('labelSumber').innerText = "Wikipedia: " + q;
-      document.getElementById('linkSumber').href = "https://id.wikipedia.org/wiki/" + encodeURIComponent(q);
+    async function kirimPesan() {
+      const input = document.getElementById('userInput');
+      const query = input.value.trim();
+      if (!query) return;
+
+      const chatFlow = document.getElementById('chatFlow');
+
+      // 1. Tampilkan Balon Pertanyaan User (Kanan)
+      const userBubble = document.createElement('div');
+      userBubble.className = 'user-msg';
+      userBubble.innerText = query;
+      chatFlow.appendChild(userBubble);
+
+      // Bersihkan input dan scroll ke bawah
+      input.value = '';
+      chatFlow.scrollTop = chatFlow.scrollHeight;
+
+      // 2. Buat Card AI Sementara (Loading)
+      const aiCard = document.createElement('div');
+      aiCard.className = 'ai-card';
+      aiCard.innerHTML = `
+        <h2 class="ai-title">${query}</h2>
+        <p class="ai-body loading-pulse"><span>⏳</span> Sedang mensintesis konsep dari jaringan saraf...</p>
+      `;
+      chatFlow.appendChild(aiCard);
+      chatFlow.scrollTop = chatFlow.scrollHeight;
+
+      try {
+        // Cari info topik di Wikipedia API
+        const wikiRes = await fetch(`https://id.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`);
+        const wikiData = await wikiRes.json();
+        const topResult = wikiData.query?.search?.[0];
+
+        let wikiTitle = topResult ? topResult.title : query;
+        let wikiUrl = `https://id.wikipedia.org/wiki/${encodeURIComponent(wikiTitle)}`;
+
+        // Minta AI merangkai jawaban utuh & terstruktur
+        const promptAI = `Tolong jelaskan secara cerdas, mendalam, dan bahasa yang mengalir alami tentang: "${query}". Jangan gunakan bahasa kaku.`;
+        const aiRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptAI)}`);
+        const jawabanAI = await aiRes.text();
+
+        // 3. Tampilkan Hasil Jawaban Asli AI + Badge Wikipedia di Bawah
+        aiCard.innerHTML = `
+          <h2 class="ai-title">${wikiTitle}</h2>
+          <p class="ai-body">${jawabanAI}</p>
+          <div class="divider"></div>
+          <div class="footer-source">
+            <a href="${wikiUrl}" target="_blank" class="source-badge">
+              <span>🌐</span>
+              <span>Wikipedia: ${wikiTitle}</span>
+              <span>&rsaquo;</span>
+            </a>
+          </div>
+        `;
+      } catch (err) {
+        aiCard.querySelector('.ai-body').innerText = "Gagal memproses jaringan saraf. Periksa koneksi internet.";
+      }
+
+      chatFlow.scrollTop = chatFlow.scrollHeight;
     }
   </script>
 
