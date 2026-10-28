@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Zharful AI - Pesantren</title>
+<title>Zharful AI - Nahwu & Lughah</title>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -24,7 +24,7 @@
     position: relative;
   }
 
-  /* Header Bersih Tanpa Logo Masjid */
+  /* Header */
   .header {
     padding: 16px 20px;
     display: flex;
@@ -89,7 +89,7 @@
     margin-left: 3px;
   }
 
-  /* Teks Pertanyaan User DI PINGGIR KANAN */
+  /* Bubble User */
   .user-bubble {
     align-self: flex-end;
     margin-left: auto;
@@ -105,16 +105,16 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.5);
   }
 
-  /* Teks Jawaban AI (Di Tengah, Tapi Jajaran Sejajar Rapi) */
+  /* Bubble AI */
   .ai-bubble {
     position: relative;
     width: 100%;
     max-width: 95%;
     margin: 0 auto;
-    text-align: left; /* Rapi sejajar, bukan melayang acak */
+    text-align: left;
     background: #0a0a0a;
     border: 1px solid #1a1a1a;
-    border-left: 3px solid #d4af37; /* Aksen garis emas */
+    border-left: 3px solid #d4af37;
     border-radius: 12px;
     padding: 16px 36px 16px 16px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
@@ -132,10 +132,10 @@
     margin: 12px 0 6px 0;
     line-height: 2;
     direction: rtl;
-    text-align: right; /* Khusus teks Arab rata kanan */
+    text-align: right;
   }
 
-  /* Tombol Ikon Copy Pojok Kanan Atas */
+  /* Tombol Copy */
   .btn-copy-icon {
     position: absolute;
     top: 10px;
@@ -151,16 +151,10 @@
     justify-content: center;
     transition: 0.2s;
   }
-  .btn-copy-icon:active {
-    transform: scale(0.88);
-    color: #4ade80;
-  }
-  .btn-copy-icon svg {
-    width: 17px;
-    height: 17px;
-  }
+  .btn-copy-icon:active { transform: scale(0.88); color: #4ade80; }
+  .btn-copy-icon svg { width: 17px; height: 17px; }
 
-  /* Input Chat Melayang di Bawah */
+  /* Input Chat Melayang */
   .input-wrap {
     position: fixed;
     bottom: 20px;
@@ -182,9 +176,7 @@
     padding: 6px 8px 6px 18px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.9);
   }
-  .input-bar:focus-within {
-    border-color: #1b4d35;
-  }
+  .input-bar:focus-within { border-color: #1b4d35; }
   .input-bar input {
     flex: 1;
     background: transparent;
@@ -228,7 +220,7 @@
   </div>
 
   <div class="chat-container" id="box">
-    <!-- Sapaan Animasi Typewriter -->
+    <!-- Sapaan Animasi Typewriter Khusus Nahwu Dzorof & Al-Arbain -->
     <div class="welcome-wrap">
       <div class="salam-arab">السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</div>
       <div class="bismillah-arab">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
@@ -240,15 +232,15 @@
 
   <div class="input-wrap">
     <div class="input-bar">
-      <input type="text" id="pesan" placeholder="Tanyakan seputar nahwu / fiqih...">
+      <input type="text" id="pesan" placeholder="Tanyakan seputar nahwu, dzorof, lughah...">
       <button class="btn-send" onclick="kirim()">➤</button>
     </div>
   </div>
 </div>
 
 <script>
-// Sapaan Animasi Hidup
-const salamText = "Selamat datang di Zharful–AI, wadah mudzakarah ilmu Nahwu, Shorof, dan Fiqih Pesantren. Semoga dengan membaca bismillah, Zharful bisa membantu menjawab pertanyaan Anda dengan benar, tepat, dan penuh keberkahan ilmu.";
+// Sapaan Disesuaikan: Nahwu, Dzorof, dan Al-Arba'in fin-Nahwi wash-Shorfi wal-Lughah
+const salamText = "Selamat datang di Zharful–AI, wadah mudzakarah ilmu Nahwu, Dzorof, dan Al-Arba'in fin-Nahwi wash-Shorfi wal-Lughah. Semoga dengan membaca bismillah, Zharful bisa membantu menjawab pertanyaan Anda dengan benar, tepat, dan penuh keberkahan ilmu.";
 let textIdx = 0;
 
 function ketikSapaan() {
@@ -284,34 +276,50 @@ function kirim() {
   if(!val) return;
 
   const box = document.getElementById('box');
-  // Pertanyaan Rata Kanan
   box.innerHTML += `<div class="user-bubble">${val}</div>`;
   inp.value = '';
   window.scrollTo(0, document.body.scrollHeight);
 
   setTimeout(() => {
-    let text = "Mudzakarah untuk bab tersebut sedang ditelaah lebih dalam dari rujukan kitab-kitab turats.";
+    // Teks Fallback Sopan, Hati-hati, dan Beradab
+    let text = "Afwan, untuk bab tersebut saat ini belum ada di dalam program Zharful. Pertanyaan tersebut akan saya telaah kembali dan mempelajarinya dengan baik agar ke depannya bisa terjawab secara tepat, karena memberikan jawaban ilmu haruslah benar agar tidak menjadi kesalahan.";
     let arab = "";
 
     const q = val.toLowerCase();
-    if(q.includes('salam') || q.includes('assalam') || q.includes('asalam')) {
-      text = "Wa'alaikumussalam warahmatullah wabarakatuh. Ahlan wa sahlan! Ada bab Nahwu, Shorof, atau Fiqih yang ingin dimudzakarahkan?";
+    
+    // Siapa Pembuatmu
+    if(q.includes('pembuat') || q.includes('pencipta') || q.includes('siapa kamu')) {
+      text = "Saya adalah Zharful–AI, asisten mudzakarah mandiri yang dirancang khusus untuk mengkaji kaidah Ilmu Nahwu, Dzorof, dan Al-Arba'in fin-Nahwi wash-Shorfi wal-Lughah.";
+    } 
+    // Salam
+    else if(q.includes('salam') || q.includes('assalam') || q.includes('asalam')) {
+      text = "Wa'alaikumussalam warahmatullah wabarakatuh. Ahlan wa sahlan! Ada kaidah Nahwu, Dzorof, atau Lughah yang ingin dimudzakarahkan?";
       arab = "وَعَلَيْكُمُ السَّلاَمُ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ";
-    } else if(q.includes('kalimah') || q.includes('kalimat')) {
-      text = "Kalimah (الكلمة) dalam ilmu Nahwu adalah lafadz yang diletakkan untuk menunjukkan makna mufrod (kata tunggal). Terbagi menjadi 3 bagian: Isim, Fi'il, dan Huruf yang bermakna.";
-      arab = "الكَلِمَةُ هِيَ اللَّفْظُ المَوْضُوعُ لِمَعْنًى مُفْرَدٍ";
-    } else if(q.includes('isim')) {
-      text = "Isim adalah kata yang menunjukkan arti pada dirinya sendiri dan tidak terikat oleh waktu. Tandanya: dapat menerima i'rab khofadh/jer, tanwin, kemasukan alif lam (ال), dan kemasukan huruf jer.";
-      arab = "فَالِاسْمُ يُعْرَفُ: بِالْخَفْضِ، وَالتَّنْوِينِ، وَدُخُولِ الْأَلِفِ وَاللَّامِ";
-    } else if(q.includes('fi\'il') || q.includes('fiil')) {
-      text = "Fi'il adalah kata yang menunjukkan arti pada dirinya sendiri dan terikat dengan salah satu waktu (lampau, sekarang, atau akan datang). Tandanya: bisa kemasukan Qad, Sin, Saufa, dan Ta' Ta'nits Sakinah.";
-      arab = "وَالْفِعْلُ يُعْرَفُ بِقَدْ، وَالسِّينِ، وَسَوْفَ، وَتَاءِ التَّأْنِيثِ السَّاكِنَةِ";
-    } else if(q.includes('kalam')) {
-      text = "Kalam adalah lafadz yang tersusun, memberi faedah sempurna, dan disengaja dengan bahasa Arab. Bagian kalam ada 3: Isim, Fi'il, dan Huruf.";
-      arab = "الكَلَامُ هُوَ اللَّفْظُ المُرَكَّبُ المُفِيدُ بِالوُضْعِ";
-    } else if(q.includes('dzorof') || q.includes('zhorof') || q.includes('dhorof')) {
-      text = "Dzorof adalah isim penunjuk waktu atau tempat yang dibaca nashob dengan mentaqdirkan makna 'fī' (di dalam/pada). Dibagi menjadi Dzorof Zaman (waktu) dan Dzorof Makan (tempat).";
+    } 
+    // Dzorof
+    else if(q.includes('dzorof') || q.includes('zhorof') || q.includes('dhorof')) {
+      text = "Dzorof (الظرف) secara bahasa berarti wadah (bejana). Dalam nahwu, dzorof adalah isim yang dibaca nashob dengan mentaqdirkan makna 'fī' (di dalam/pada). Dzorof terbagi dua: Dzorof Zaman (waktu) dan Dzorof Makan (tempat).";
       arab = "ظَرْفُ الزَّمَانِ هُوَ اسْمُ الزَّمَانِ الْمَنْصُوبُ بِتَقْدِيرِ فِي";
+    } 
+    // Kalimah / Kalimat
+    else if(q.includes('kalimah') || q.includes('kalimat')) {
+      text = "Kalimah (الكلمة) adalah lafadz yang diletakkan untuk menunjukkan arti mufrod (tunggal). Kalimah terbagi menjadi 3: Isim, Fi'il, dan Huruf yang berfaedah.";
+      arab = "الكَلِمَةُ هِيَ اللَّفْظُ المَوْضُوعُ لِمَعْنًى مُفْرَدٍ";
+    } 
+    // Isim
+    else if(q.includes('isim')) {
+      text = "Isim adalah kata yang menunjukkan arti pada dirinya sendiri dan tidak disertai dengan waktu. Ciri-cirinya: menerima tanwin, alif lam (ال), i'rab khofadh/jer, dan huruf jer.";
+      arab = "فَالِاسْمُ يُعْرَفُ: بِالْخَفْضِ، وَالتَّنْوِينِ، وَدُخُولِ الْأَلِفِ وَاللَّامِ";
+    } 
+    // Fi'il
+    else if(q.includes('fi\'il') || q.includes('fiil')) {
+      text = "Fi'il adalah kata yang menunjukkan makna pada dirinya sendiri dan terikat dengan salah satu waktu (lampau, sekarang, atau masa depan). Ciri-cirinya: bisa kemasukan Qad, Sin, Saufa, dan Ta' Ta'nits Sakinah.";
+      arab = "وَالْفِعْلُ يُعْرَفُ بِقَدْ، وَالسِّينِ، وَسَوْفَ، وَتَاءِ التَّأْنِيثِ السَّاكِنَةِ";
+    } 
+    // Kalam
+    else if(q.includes('kalam')) {
+      text = "Kalam menurut ulama Nahwu adalah lafadz yang tersusun, berfaedah sempurna, dan disengaja dengan bahasa Arab.";
+      arab = "الكَلَامُ هُوَ اللَّفْظُ المُرَكَّبُ المُفِيدُ بِالوُضْعِ";
     }
 
     const currentId = "item-" + count++;
